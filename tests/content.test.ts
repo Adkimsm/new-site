@@ -1,0 +1,3 @@
+import { describe, expect, it } from "vitest";
+import { getPosts, groupPosts, validatePostSlugs } from "@/lib/content/posts";
+describe("content", () => { it("loads valid posts sorted newest first", () => { const posts = getPosts(); expect(posts.length).toBe(3); expect(posts[0].date >= posts[1].date).toBe(true); }); it("groups posts by year and month", () => { const groups = groupPosts(getPosts()); expect(groups["2026"]["08"]).toHaveLength(2); expect(groups["2026"]["07"]).toHaveLength(1); }); it("does not contain duplicate URLs", () => { expect(validatePostSlugs(getPosts())).toBe(true); }); });

@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { getPosts, groupPosts } from "@/lib/content/posts";
+export const metadata = { title: "文章" };
+export default function Posts() { const grouped = groupPosts(getPosts()); return <section className="page"><span className="eyebrow">Archive</span><h1>文章</h1><p className="meta">按时间记录正在发生的思考。</p>{Object.entries(grouped).map(([year, months]) => <section key={year}><h2 className="timeline-year">{year}</h2>{Object.entries(months).map(([month, posts]) => <div key={month}><h3 className="month">{month} · {posts.length} 篇</h3><ul className="post-list">{posts.map((post) => <li className="post-item" key={post.slug}><time className="post-date">{post.date}</time><div><Link className="post-title" href={`/posts/${post.slug}`}>{post.title}</Link><p className="post-description">{post.description}</p></div></li>)}</ul></div>)}</section>)}</section>; }
