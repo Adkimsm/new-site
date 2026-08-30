@@ -10,6 +10,7 @@ export function MenuButton() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const previousBodyStyles = useRef({ overflow: "", paddingRight: "" });
 
   useEffect(() => {
     if (!open) return;
@@ -36,11 +37,15 @@ export function MenuButton() {
     const outside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node) && event.target !== buttonRef.current) setOpen(false);
     };
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    previousBodyStyles.current = { overflow: document.body.style.overflow, paddingRight: document.body.style.paddingRight };
     document.body.style.overflow = "hidden";
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
     window.addEventListener("keydown", close);
     document.addEventListener("click", outside);
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = previousBodyStyles.current.overflow;
+      document.body.style.paddingRight = previousBodyStyles.current.paddingRight;
       window.removeEventListener("keydown", close);
       document.removeEventListener("click", outside);
     };
