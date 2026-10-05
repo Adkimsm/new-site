@@ -93,7 +93,19 @@ a.pill:hover {
 
 .field::placeholder { color: var(--muted); }
 .field:hover { border-color: var(--line-strong); }
-.field:focus { border-color: var(--ink); background: var(--paper); }
+
+/* 文本字段的聚焦指示器
+   不用全局的 3px 外描边（在搜索框上显得很重），改成：
+   边界色 --line → --ink（对比度约 17:1）作为主指示，再加一圈柔和墨色光晕。
+   这是「换一种可见焦点表达」，不是移除焦点指示；:focus 与 :focus-visible 合并，
+   避免鼠标点击与键盘聚焦两套样式互相覆盖。 */
+.field:focus,
+.field:focus-visible {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--paper);
+  box-shadow: 0 0 0 3px var(--line-soft);
+}
 
 /* ---- 搜索 ---------------------------------------------------------------- */
 .search-field { position: relative; }
@@ -110,13 +122,16 @@ a.pill:hover {
 /* 为前导图标让出位置；必须排在于 .field 之后 */
 .search-input { padding-left: calc(var(--space-4) + 28px); }
 
-/* 常驻占位，避免结果行出现时正文跳动；仅有关键词时才有文字 */
-.search-status {
-  margin: var(--space-4) 0 0;
+/* 常驻占位，避免结果行出现时正文跳动；仅有关键词时才有文字。
+   必须写成 .search .search-status：单写 .search-status 会被后面的
+   .meta（同优先级、位置靠后）的 margin 覆盖，margin-top 归零，
+   输入框与状态行会完全贴在一起。 */
+.search .search-status {
+  margin: var(--space-5) 0 0;
   min-height: 1.4em;
 }
 
-.search-results { margin-top: var(--space-5); }
+.search-results { margin-top: var(--space-4); }
 
 /* ---- 空状态（无结果、404） -------------------------------------------- */
 .empty-state {
@@ -168,19 +183,41 @@ a.pill:hover {
 
 .post-item {
   position: relative;
+  /* 新建层叠上下文，让下面色带的 z-index:-1 只退到本行之上、页面背景之下；
+     色带用绝对定位而不改行盒，时间轴节点的 left 偏移无需重算。 */
+  isolation: isolate;
   display: grid;
   grid-template-columns: var(--date-col) minmax(0, 1fr);
   gap: var(--space-4);
   padding: var(--space-5) 0;
   border-bottom: 1px solid var(--line-soft);
-  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
-/* hover 时用等宽阴影向两侧延伸出一层极淡墨色，不依赖负 z-index */
-.post-item:hover {
+/* 悬停/聚焦色带
+   原来用 background + 双侧 box-shadow 造带子：桌面带子比文字宽 12px，文字贴着带边；
+   移动端关掉阴影后带子正好等于文字盒，于是文字左右都顶到带边。
+   改用 ::after 向两侧扩出 --row-bleed，文字在带子内就有真实内边距。
+   注意 ::before 已被时间轴节点占用，这里只能用 ::after。 */
+.post-item::after {
+  content: "";
+  position: absolute;
+  inset: 0 calc(var(--row-bleed) * -1);
+  z-index: -1;
+  border-radius: var(--radius-sm);
   background: var(--wash);
-  box-shadow: -.75rem 0 0 var(--wash), .75rem 0 0 var(--wash);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard);
 }
+
+/* 只在真的支持悬停的设备上给 hover 反馈；触屏点按会错误地触发 :hover */
+@media (hover: hover) {
+  .post-item:hover::after { opacity: 1; }
+}
+
+/* 键盘与触屏:键盘走 focus-within，触屏点按走 :active 的短暂反馈 */
+.post-item:focus-within::after,
+.post-item:active::after { opacity: 1; }
 
 .post-date {
   display: flex;
@@ -328,9 +365,7 @@ a.pill:hover {
     grid-template-columns: minmax(0, 1fr);
     gap: .3rem;
   }
-
-  .post-item:hover { box-shadow: none; }
-
+  /* 窄屏色带外扩量收小（见 tokens 的 --row-bleed），不再需要全图关闭阴影的补丁 */
   .timeline { margin-top: var(--space-6); }
   .timeline-group { padding-left: var(--space-5); }
   .timeline-year::before { left: calc(var(--space-5) * -1); }

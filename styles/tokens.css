@@ -78,6 +78,10 @@
   --toc-gap: 2.5rem;
   --date-col: 110px;
 
+  /* 列表行悬停/聚焦色带向两侧外扩的量（移动优先：窄屏给更小的值，
+     保证色带不会顶到屏幕边缘）。必须小于 --gutter。 */
+  --row-bleed: .5rem;
+
   /* 页首留白：由导航高度推导，改导航高度只需改 --nav-height */
   --page-pad-top: calc(var(--nav-height) + 4.5rem);
   --page-pad-top-mobile: calc(var(--nav-height) + 2.5rem);
@@ -98,6 +102,11 @@
   --focus-ring: 3px;
 
   color-scheme: light;
+}
+
+/* 移动优先：宽屏才把色带外扩量放大 */
+@media (min-width: 701px) {
+  :root { --row-bleed: .75rem; }
 }
 
 /* 暗色：系统偏好（未手动选浅色时生效） */

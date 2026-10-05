@@ -61,8 +61,11 @@
 .prose li > ol { margin: var(--space-2) 0; }
 .prose li::marker { color: var(--muted); }
 
-/* GFM 任务列表 */
-.prose .contains-task-list { padding-left: 0; }
+/* GFM 任务列表
+   注意：**不要**给 .contains-task-list 清零 padding-left。remark-gfm 只要列表里
+   有一项是任务项，就给整个 <ul> 加这个类；一旦清零，同列表里普通项的
+   disc 标记（list-style-position: outside）会被画到盒子外面，实测落在 x≈2px，
+   也就是贴在屏幕左边缘。标签的 list-style 已经单独去掉，无需再动列表缩进。 */
 .prose .task-list-item { list-style: none; }
 .prose .task-list-item input[type="checkbox"] {
   margin-right: .55em;
@@ -132,10 +135,18 @@
   font: inherit;
 }
 
-/* 一键复制：贴在代码块右上角，用 float 避免遮住首行代码 */
+/* 一键复制
+   绝对定位而不是 float：按钮是 append 在 <code> 之后的，float 会落在流的末尾，
+   结果掉到代码下方并把 pre 撑高（实测 pre 135px，而 16+代码+16 应为 99px）。
+   绝对定位后完全不参与布局，死空白随之消失。
+
+   默认用 opacity 隐藏而不是 visibility/display：按钮仍留在 Tab 顺序里，
+   键盘用户不会失去这个功能。触屏没有 hover，但 pre 自带 tabindex="0"，
+   点一下代码块即可命中 pre:focus-within。 */
 .copy-code {
-  float: right;
-  margin: -.25rem 0 var(--space-2) var(--space-3);
+  position: absolute;
+  top: 6px;
+  right: 6px;
   padding: .3rem .45rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -143,7 +154,22 @@
   color: var(--muted);
   line-height: 0;
   cursor: pointer;
-  transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+}
+
+@media (hover: hover) {
+  .prose pre:hover .copy-code {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.prose pre:focus-within .copy-code,
+.copy-code:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .copy-code:hover {

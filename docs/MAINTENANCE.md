@@ -60,4 +60,7 @@ pyftsubset /tmp/NotoSerifSC-VF.ttf \
 - **减少动效模式下导航下划线全部出现**：说明有人又把 `transform: none !important` 加回了 `prefers-reduced-motion` 块。
 - **文章目录里只有一个「Footnotes」**：说明正文标题没有 id。`lib/markdown.ts` 的 `addHeadingIds` 负责补 id；不要改回 `rehype-slug` —— 在 `remark-html` 之后接 rehype 插件拿不到 hast，是空操作。
 - **代码复制按钮一闪就消失**：`ReadingTools` 里 `dangerouslySetInnerHTML` 必须是 memo 住的对象。React 按对象身份判断是否重写 innerHTML，写成内联对象会在每次重渲（例如滚动更新进度）时抹掉命令式注入的 DOM。
+- **列表的圆点贴到屏幕左边缘**：说明有人又给 `.contains-task-list` 清零了 `padding-left`。`list-style-position: outside` 的列表必须保留缩进，否则标记会被画到盒子外。
+- **触屏上点一下文章行就出现一块没有内边距的色块**：说明 hover 色带规则跑到了 `@media (hover: hover)` 外面。触屏点按会触发 `:hover`，必须把 hover 反馈关在这个媒体查询里。
+- **代码块底部多出一大块空白**：`copy-code` 按钮被改回了 `float`。它必须绝对定位，否则会参与布局并把代码卡撑高。
 - **给正文加新的命令式 DOM（例如行号）时看不到**：同上，先确认没有触发 `#article-content` 的 innerHTML 重写。
