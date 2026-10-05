@@ -63,4 +63,5 @@ pyftsubset /tmp/NotoSerifSC-VF.ttf \
 - **列表的圆点贴到屏幕左边缘**：说明有人又给 `.contains-task-list` 清零了 `padding-left`。`list-style-position: outside` 的列表必须保留缩进，否则标记会被画到盒子外。
 - **触屏上点一下文章行就出现一块没有内边距的色块**：说明 hover 色带规则跑到了 `@media (hover: hover)` 外面。触屏点按会触发 `:hover`，必须把 hover 反馈关在这个媒体查询里。
 - **代码块底部多出一大块空白**：`copy-code` 按钮被改回了 `float`。它必须绝对定位，否则会参与布局并把代码卡撑高。
+- **横向滚动代码时复制按钮跟着跑**：按钮的包含块落到滚动容器里了。按钮必须挂在 `.code-block`（由 `ReadingTools` 注入的不滚动外层）上、作为 `pre` 的兄弟，并且 `.prose pre` 不能设 `position: relative`。
 - **给正文加新的命令式 DOM（例如行号）时看不到**：同上，先确认没有触发 `#article-content` 的 innerHTML 重写。

@@ -115,7 +115,6 @@
 
 /* ---- 代码块 ------------------------------------------------------------ */
 .prose pre {
-  position: relative;
   overflow: auto;
   margin: var(--space-7) 0;
   padding: var(--space-5);
@@ -125,6 +124,17 @@
   font: .88rem/1.7 var(--font-mono);
   tab-size: 2;
 }
+
+/* 代码卡外层（由 ReadingTools 注入）
+   pre 自己是 overflow:auto 的滚动容器，绝对定位的子元素会跟着内容一起横向滚走。
+   所以把 pre 包进这层不滚动的容器，复制按钮挂在容器上，才能固定不动。
+   纵向外边距移到容器上，pre 自身归零，避免与 .prose > :first-child 等规则叠加。 */
+.code-block {
+  position: relative;
+  margin: var(--space-7) 0;
+}
+
+.code-block > pre { margin: 0; }
 
 .prose pre code {
   display: block;
@@ -136,13 +146,14 @@
 }
 
 /* 一键复制
-   绝对定位而不是 float：按钮是 append 在 <code> 之后的，float 会落在流的末尾，
-   结果掉到代码下方并把 pre 撑高（实测 pre 135px，而 16+代码+16 应为 99px）。
-   绝对定位后完全不参与布局，死空白随之消失。
+   按钮挂在 .code-block 外层（不是 pre 上）：pre 是滚动容器，
+   若按钮留在 pre 里，横向滚动代码时它会跟着滚走。
+   同时它绝对定位、不参与布局：早先用 float 时按钮会落在流的末尾，
+   掉到代码下方并把卡片撑高（实测 135px，而 16+代码+16 应为 99px）。
 
    默认用 opacity 隐藏而不是 visibility/display：按钮仍留在 Tab 顺序里，
    键盘用户不会失去这个功能。触屏没有 hover，但 pre 自带 tabindex="0"，
-   点一下代码块即可命中 pre:focus-within。 */
+   点一下代码块即可命中 .code-block:focus-within。 */
 .copy-code {
   position: absolute;
   top: 6px;
@@ -160,13 +171,13 @@
 }
 
 @media (hover: hover) {
-  .prose pre:hover .copy-code {
+  .code-block:hover .copy-code {
     opacity: 1;
     pointer-events: auto;
   }
 }
 
-.prose pre:focus-within .copy-code,
+.code-block:focus-within .copy-code,
 .copy-code:focus-visible {
   opacity: 1;
   pointer-events: auto;
@@ -275,5 +286,6 @@
 
   .prose h2 { margin-top: var(--space-8); font-size: var(--text-2xl); }
   .prose h3 { font-size: var(--text-xl); }
-  .prose pre { margin: var(--space-6) 0; padding: var(--space-4); font-size: .82rem; }
+  .code-block { margin: var(--space-6) 0; }
+  .code-block > pre { padding: var(--space-4); font-size: .82rem; }
 }

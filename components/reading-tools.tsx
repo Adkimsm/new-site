@@ -42,16 +42,29 @@ export function ReadingTools({ html }: { html: string }) {
       const target = event.target as HTMLElement;
       const block = target.closest("pre");
       if (!block || target.closest("button")) return;
+
+      // 把 pre 包进一层不滚动的容器，按钮挂在这一层上。
+      // 如果按钮留在 pre 里，作为滚动容器的绝对定位子元素，它会跟着代码
+      // 一起横向滚走（pre 自己是 overflow: auto 的滚动容器）。
+      let wrapper: HTMLElement | null = block.parentElement?.classList.contains("code-block") ? block.parentElement : null;
+      if (!wrapper) {
+        const created = document.createElement("div");
+        created.className = "code-block";
+        block.replaceWith(created);
+        created.append(block);
+        wrapper = created;
+      }
+      if (wrapper.querySelector("button")) return;
       const button = document.createElement("button");
       button.className = "copy-code";
       button.setAttribute("aria-label", "复制代码");
       button.title = "复制代码";
       button.innerHTML = '<svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
       button.onclick = async () => { await navigator.clipboard?.writeText(block.innerText); button.setAttribute("aria-label", "代码已复制"); button.title = "代码已复制"; button.innerHTML = '<svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>'; window.setTimeout(() => { button.setAttribute("aria-label", "复制代码"); button.title = "复制代码"; button.innerHTML = '<svg aria-hidden="true" focusable="false" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'; }, 1400); };
-      block.append(button);
+      wrapper.append(button);
     };
     elements.forEach((heading) => heading.setAttribute("tabindex", "-1"));
-    root.querySelectorAll("pre").forEach((pre) => { if (!pre.querySelector("button")) copyCode({ target: pre } as unknown as MouseEvent); });
+    root.querySelectorAll("pre").forEach((pre) => { if (!pre.parentElement?.classList.contains("code-block")) copyCode({ target: pre } as unknown as MouseEvent); });
     const images = [...root.querySelectorAll<HTMLImageElement>("img")];
     const openImage = (image: HTMLImageElement) => () => { setLightboxMounted(true); requestAnimationFrame(() => setLightbox(image.currentSrc || image.src)); };
     const imageHandlers = images.map((image) => { const handler = openImage(image); const keyboardHandler = (event: KeyboardEvent) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); handler(); } }; image.addEventListener("click", handler); image.addEventListener("keydown", keyboardHandler); image.tabIndex = 0; image.setAttribute("role", "button"); image.setAttribute("aria-label", "打开图片预览"); return [image, handler, keyboardHandler] as const; });

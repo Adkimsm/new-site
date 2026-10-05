@@ -81,7 +81,7 @@
 - 胶囊 pill：标签与计数，1px 细线 + 全圆角。
 - 文章列表：日期列 110px + 内容列；悬停/聚焦时用极淡墨色条带（`--wash`），向两侧外扩 `--row-bleed`（移动 .5rem / 宽屏 .75rem），文字在条带内保留真实内边距。条带是绝对定位的 `::after` + 行上的 `isolation: isolate`（负 z-index 因此只在本行内生效），**不修改行盒尺寸**，所以时间轴节点偏移无需重算。触屏不给 hover 反馈：hover 规则包在 `@media (hover: hover)` 里，键盘用 `:focus-within`，点按用 `:active`。
 - 正文列表：`list-style-position: outside` 的列表必须保留 `padding-left`（1.4em）。**不要**给 `.contains-task-list` 清零缩进：remark-gfm 给“只要含任务项”的整个列表加这个类，清零会把普通项的 disc 标记画到盒子外，实测落在 x≈2px。
-- 代码块复制按钮：绝对定位贴在代码卡右上角（不参与布局，否则 float 会把代码卡撑高约 36px），默认 `opacity: 0`，在 `pre:hover`（仅 hover 设备）、`pre:focus-within` 或按钮 `:focus-visible` 时显形。用 opacity 而不是 `visibility/display`，保证仍可 Tab 到达。
+- 代码块复制按钮：`ReadingTools` 会把 `pre` 包进一层 `.code-block`（`position: relative`），按钮挂在这一层、作为 `pre` 的兄弟。**不能**把按钮放进 `pre`，也不能给 `.prose pre` 加 `position: relative`：`pre` 是 `overflow: auto` 的滚动容器，一旦按钮的包含块落在滚动容器内，横向滚动代码时它就会跟着跑。按钮绝对定位在卡片右上角（不参与布局；早先用 float 时它会落在流的末尾、掉到代码下方并把卡片撑高约 36px），默认 `opacity: 0`，在 `.code-block:hover`（仅 hover 设备）、`.code-block:focus-within` 或按钮 `:focus-visible` 时显形。用 opacity 而不是 `visibility/display`，保证仍可 Tab 到达。
 - 精选文章：内容列左侧 2px 墨色实线 + 「精选」徽章。
 - 时间轴：统一左侧单轴 + 节点。不使用桌面中央轴 —— 中央轴会把年份标签挤进左槽、产生锯齿状留白，单轴只保留一条阅读边。
 - 目录：宽屏是正文网格内的粘性轨（宽度由 `--measure-prose` 推导，不再硬编码坐标）；≤1100px 变为浮层，由阅读工具里的目录按钮开关。
