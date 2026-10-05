@@ -1,0 +1,139 @@
+/* ==========================================================================
+   基础层 — reset、文档、链接、选区、可访问性辅助
+   ========================================================================== */
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  /* 固定导航下的锚点落点补偿 */
+  scroll-padding-top: calc(var(--nav-height) + var(--space-5));
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--body);
+  font-family: var(--font-serif);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  /* 中文正文的断行与标点处理 */
+  text-spacing-trim: space-first;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+a:hover { text-decoration: underline; }
+
+/* 长链接与代码不撑破容器 */
+p, li, dd, blockquote { overflow-wrap: break-word; }
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+img { max-width: 100%; height: auto; }
+
+/* ---- 跳转到正文（键盘可达） ------------------------------------------- */
+.skip {
+  position: absolute;
+  left: -999px;
+}
+
+.skip:focus {
+  left: var(--space-4);
+  top: var(--space-4);
+  z-index: 40;
+  padding: .6rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+
+/* ---- 屏幕阅读器专用 ---------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- 搜索命中等反白标记 ------------------------------------------------ */
+mark {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0 .12em;
+  border-radius: 2px;
+}
+
+/* ---- 统一的可见焦点 ---------------------------------------------------- */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: var(--focus-ring) solid var(--ink);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+/* ---- 图标按钮的通用归零 ------------------------------------------------ */
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* ---- 页面入场 ---------------------------------------------------------- */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes result-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes post-page-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---- 减少动效偏好 --------------------------------------------------------
+   注意：这里刻意**不**写 `transform: none !important`。
+   旧版全局把 transform 强制清零，会让以 `scaleX(0)` 作为隐藏态的
+   导航下划线、目录浮层等元素在减少动效时反而全部显现。
+   动画与过渡时长归零后已不再产生位移，无需再动 transform。 */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -1,0 +1,145 @@
+/* ==========================================================================
+   设计令牌
+   --------------------------------------------------------------------------
+   全部颜色只来自墨色体系（用 ink / body / muted 的明度差做层级），
+   不引入任何强调色。亮色为默认，暗色有两条等价入口：
+     1. 系统偏好  @media (prefers-color-scheme: dark)，且未显式选择浅色
+     2. 手动选择  html[data-theme="dark"]
+   这两个暗色块内容必须完全一致，修改时请同步更新。
+   ========================================================================== */
+
+:root {
+  /* 纸面与墨色（亮色） */
+  --paper: #faf9f5;
+  --surface: #fcfbf7;
+  --ink: #141413;
+  --body: #3a362c;
+  --muted: #605b52;
+  --line: #ded9cf;
+  --line-soft: rgba(20, 20, 19, .12);
+  --line-strong: #cdc7bb;
+  --soft: #f3efe7;
+  --field: #f6f2ea;
+  --wash: rgba(20, 20, 19, .04);
+
+  /* 阴影（三级，克制） */
+  --shadow-1: 0 1px 2px rgba(20, 20, 19, .05);
+  --shadow-2: 0 8px 24px rgba(20, 20, 19, .07);
+  --shadow-3: 0 18px 48px rgba(20, 20, 19, .10);
+
+  /* 间距标度 */
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 4rem;
+  --space-10: 5rem;
+  --space-11: 6rem;
+
+  /* 圆角标度 */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* 字号标度 */
+  --text-xs: .78rem;
+  --text-sm: .875rem;
+  --text-base: 1rem;
+  --text-md: 1.0625rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: clamp(1.75rem, 3vw, 2.25rem);
+  --text-display: clamp(2.4rem, 6vw, 4rem);
+  --text-hero: clamp(2.2rem, 11vw, 3.2rem);
+
+  /* 行高与字距 */
+  --leading-tight: 1.2;
+  --leading-snug: 1.45;
+  --leading-normal: 1.7;
+  --leading-prose: 1.8;
+  --tracking-tight: -.02em;
+  --tracking-display: -.04em;
+  --tracking-label: .16em;
+
+  /* 版心与外壳 */
+  --shell-max: 1080px;
+  --gutter: 1.5rem;
+  --nav-height: 72px;
+  --measure-prose: 720px;
+  --measure-page: 760px;
+  --toc-width: 190px;
+  --toc-gap: 2.5rem;
+  --date-col: 110px;
+
+  /* 页首留白：由导航高度推导，改导航高度只需改 --nav-height */
+  --page-pad-top: calc(var(--nav-height) + 4.5rem);
+  --page-pad-top-mobile: calc(var(--nav-height) + 2.5rem);
+
+  /* 字体族 */
+  --font-serif: 'Noto Serif SC Local', 'Noto Serif SC', 'Songti SC', STSong, serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', monospace;
+
+  /* 动效 */
+  --ease-standard: cubic-bezier(.2, .7, .2, 1);
+  --duration-instant: 80ms;
+  --duration-fast: 160ms;
+  --duration-normal: 240ms;
+  --duration-slow: 360ms;
+
+  /* 焦点 */
+  --focus-ring: 3px;
+
+  color-scheme: light;
+}
+
+/* 暗色：系统偏好（未手动选浅色时生效） */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1a1d20;
+    --surface: #22262a;
+    --ink: #f2ece2;
+    --body: #d8d1c5;
+    --muted: #bcb5a9;
+    --line: #4e555b;
+    --line-soft: rgba(242, 236, 226, .14);
+    --line-strong: #5b636a;
+    --soft: #2c3035;
+    --field: #262a2e;
+    --wash: rgba(242, 236, 226, .05);
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .35);
+    --shadow-2: 0 8px 24px rgba(0, 0, 0, .45);
+    --shadow-3: 0 18px 48px rgba(0, 0, 0, .55);
+
+    color-scheme: dark;
+  }
+}
+
+/* 暗色：手动选择（覆盖系统偏好） */
+:root[data-theme="dark"] {
+  --paper: #1a1d20;
+  --surface: #22262a;
+  --ink: #f2ece2;
+  --body: #d8d1c5;
+  --muted: #bcb5a9;
+  --line: #4e555b;
+  --line-soft: rgba(242, 236, 226, .14);
+  --line-strong: #5b636a;
+  --soft: #2c3035;
+  --field: #262a2e;
+  --wash: rgba(242, 236, 226, .05);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, .45);
+  --shadow-3: 0 18px 48px rgba(0, 0, 0, .55);
+
+  color-scheme: dark;
+}

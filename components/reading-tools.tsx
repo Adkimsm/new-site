@@ -1,11 +1,24 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpIcon, CheckIcon, CopyIcon, ListIcon } from "@/components/icons";
 
 type Heading = { id: string; text: string };
+
+/** 进度环几何：半径 8 的圆周长，用于把百分比换算为 stroke-dashoffset。 */
+const PROGRESS_RADIUS = 8;
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
+
 export function ReadingTools({ html }: { html: string }) {
   const contentRef = useRef<HTMLDivElement>(null);
+  /**
+   * 必须 memo 住 dangerouslySetInnerHTML 的对象：
+   * React 按对象身份判断是否需要重写 innerHTML，每次渲染新建一个对象会让它
+   * 反复重设内容，把「代码复制按钮」「标题 tabindex」这类命令式注入的 DOM 抹掉。
+   * 文章页一旦滚动就会 setState 重渲，不 memo 的话复制按钮会立即消失。
+   */
+  const content = useMemo(() => ({ __html: html }), [html]);
   const [headings, setHeadings] = useState<Heading[]>([]);
   const [active, setActive] = useState("");
   const [progress, setProgress] = useState(0);
@@ -16,7 +29,8 @@ export function ReadingTools({ html }: { html: string }) {
   useEffect(() => {
     const root = contentRef.current;
     if (!root) return;
-    const elements = [...root.querySelectorAll<HTMLHeadingElement>("h2, h3")];
+    // 脚注小节的标题属于元信息，不进目录
+    const elements = [...root.querySelectorAll<HTMLHeadingElement>("h2, h3")].filter((heading) => !heading.closest(".footnotes"));
     setHeadings(elements.filter((heading) => heading.id).map((heading) => ({ id: heading.id, text: heading.textContent ?? "" })));
     const onScroll = () => {
       const max = document.documentElement.scrollHeight - window.innerHeight;
@@ -48,5 +62,23 @@ export function ReadingTools({ html }: { html: string }) {
   useEffect(() => { if (lightbox || !lightboxMounted) return; const timer = window.setTimeout(() => setLightboxMounted(false), 240); return () => window.clearTimeout(timer); }, [lightbox, lightboxMounted]);
   const copyLink = async () => { await navigator.clipboard?.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 1600); };
   const closeLightbox = () => setLightbox("");
-  return <><div ref={contentRef} id="article-content" className="prose" dangerouslySetInnerHTML={{ __html: html }} /><aside id="article-toc" className={`toc ${tocOpen ? "toc-open" : ""}`} aria-label="文章目录"><strong>目录</strong>{headings.map((heading) => <a className={active === heading.id ? "active" : ""} href={`#${heading.id}`} key={heading.id} onClick={() => setTocOpen(false)}>{heading.text}</a>)}</aside><div className="reading-tools"><button aria-label={`阅读进度 ${Math.round(progress)}%`} title={`阅读进度 ${Math.round(progress)}%`}>{Math.round(progress)}%</button><button onClick={() => setTocOpen(!tocOpen)} aria-expanded={tocOpen} aria-controls="article-toc" aria-label="打开文章目录" title="文章目录"><ListIcon /></button><button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="返回顶部" title="返回顶部"><ArrowUpIcon /></button><button onClick={copyLink} aria-label={copied ? "链接已复制" : "复制文章链接"} title={copied ? "链接已复制" : "复制文章链接"}>{copied ? <CheckIcon /> : <CopyIcon />}</button></div>{lightboxMounted && <button autoFocus className={`lightbox ${lightbox ? "open" : "closing"}`} aria-label="关闭图片预览" onClick={closeLightbox}><Image src={lightbox} alt="放大预览" width={1200} height={800} unoptimized /></button>}</>;
+
+  return <>
+    <div className="post-body">
+      <div ref={contentRef} id="article-content" className="prose" dangerouslySetInnerHTML={content} />
+      {headings.length > 0 && <aside id="article-toc" className={`toc ${tocOpen ? "toc-open" : ""}`} aria-label="文章目录"><strong>目录</strong>{headings.map((heading) => <a className={active === heading.id ? "active" : ""} href={`#${heading.id}`} key={heading.id} onClick={() => setTocOpen(false)}>{heading.text}</a>)}</aside>}
+    </div>
+    <div className="reading-tools">
+      <button className="tool-progress" aria-label={`阅读进度 ${Math.round(progress)}%`} title={`阅读进度 ${Math.round(progress)}%`}>
+        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <circle className="tool-progress__track" cx="10" cy="10" r={PROGRESS_RADIUS} strokeWidth="2" />
+          <circle className="tool-progress__value" cx="10" cy="10" r={PROGRESS_RADIUS} strokeWidth="2" strokeLinecap="round" strokeDasharray={PROGRESS_CIRCUMFERENCE} strokeDashoffset={PROGRESS_CIRCUMFERENCE * (1 - progress / 100)} transform="rotate(-90 10 10)" />
+        </svg>
+      </button>
+      {headings.length > 0 && <button className="toc-toggle" onClick={() => setTocOpen(!tocOpen)} aria-expanded={tocOpen} aria-controls="article-toc" aria-label="打开文章目录" title="文章目录"><ListIcon /></button>}
+      <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="返回顶部" title="返回顶部"><ArrowUpIcon /></button>
+      <button onClick={copyLink} aria-label={copied ? "链接已复制" : "复制文章链接"} title={copied ? "链接已复制" : "复制文章链接"}>{copied ? <CheckIcon /> : <CopyIcon />}</button>
+    </div>
+    {lightboxMounted && <button autoFocus className={`lightbox ${lightbox ? "open" : "closing"}`} aria-label="关闭图片预览" onClick={closeLightbox}><Image src={lightbox} alt="放大预览" width={1200} height={800} unoptimized /></button>}
+  </>;
 }

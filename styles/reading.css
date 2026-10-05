@@ -1,0 +1,329 @@
+/* ==========================================================================
+   阅读层 — 文章页版式、目录（网格常驻轨）、阅读工具、授权卡、灯箱
+   ========================================================================== */
+
+/* ---- 文章页外壳 --------------------------------------------------------
+   版心 = 正文列 + 目录槽；除正文网格外的子元素都收到正文列宽度，
+   这样标题、授权卡、标签、上下篇与正文严格对齐。 */
+.post-page {
+  max-width: calc(var(--measure-prose) + var(--toc-gap) + var(--toc-width));
+  animation-name: post-page-enter;
+}
+
+.post-page > :not(.post-body) { max-width: var(--measure-prose); }
+
+.post-header { margin-bottom: var(--space-6); }
+.post-header .eyebrow { margin-bottom: var(--space-3); }
+.post-header h1 { margin-bottom: var(--space-4); }
+.post-header .meta { margin-bottom: 0; }
+
+/* ---- 正文 + 目录的两列网格 --------------------------------------------- */
+.post-body {
+  display: grid;
+  grid-template-columns: minmax(0, var(--measure-prose)) var(--toc-width);
+  gap: var(--toc-gap);
+  align-items: start;
+  margin-top: var(--space-8);
+}
+
+/* ---- 目录：常驻粘性轨（宽屏） ------------------------------------------
+   旧实现用 left: calc(50% + 400px) 硬编码坐标：一旦正文宽度变化就会压住正文。
+   这里改成网格列 + sticky，位置由版心推导。 */
+.toc {
+  position: sticky;
+  top: calc(var(--nav-height) + var(--space-6));
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: calc(100svh - var(--nav-height) - var(--space-9));
+  overflow: auto;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--leading-snug);
+}
+
+.toc strong {
+  margin-bottom: var(--space-1);
+  color: var(--ink);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.toc a {
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--line-soft);
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+}
+
+.toc a:hover,
+.toc a.active {
+  color: var(--ink);
+  border-color: var(--ink);
+  transform: translateX(2px);
+  text-decoration: none;
+}
+
+/* 宽屏目录常驻，浮层开关按钮多余。
+   必须写成 .reading-tools .toc-toggle：单类选择器会被 .reading-tools button
+   的 display:inline-flex 压过（优先级 0,1,1 > 0,1,0）。 */
+@media (min-width: 1101px) {
+  .reading-tools .toc-toggle { display: none; }
+}
+
+/* ---- 封面 -------------------------------------------------------------- */
+.post-cover-wrap { margin: 0 0 var(--space-8); }
+
+.post-cover {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  transition: transform var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+}
+
+.post-cover:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+
+/* ---- 授权卡 ------------------------------------------------------------ */
+.license-card {
+  margin-top: var(--space-9);
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--soft);
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+}
+
+.license-card strong {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--ink);
+  font-size: var(--text-sm);
+  line-height: var(--leading-snug);
+}
+
+.license-card p { margin: 0 0 var(--space-2); }
+.license-card p:last-child { margin-bottom: 0; }
+.license-card a { color: var(--body); text-decoration: underline; text-decoration-color: var(--line-strong); }
+.license-card a:hover { color: var(--ink); text-decoration-color: var(--ink); }
+.license-card small { display: block; color: var(--muted); font-size: inherit; }
+
+/* ---- 标签 -------------------------------------------------------------- */
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-7);
+}
+
+/* ---- 上一篇 / 下一篇 --------------------------------------------------- */
+.post-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-9);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line-soft);
+}
+
+.post-nav a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  text-decoration: none;
+  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+}
+
+.post-nav a:hover {
+  border-color: var(--line-strong);
+  background: var(--soft);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+/* 只有一篇相邻文章时也要落在正确的一侧 */
+.post-nav .previous-post { grid-column: 1; }
+.post-nav .next-post { grid-column: 2; align-items: flex-end; text-align: right; }
+
+.post-nav-label {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* ---- 右下角阅读工具 ---------------------------------------------------- */
+.reading-tools {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  z-index: 5;
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+
+.reading-tools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.4rem;
+  min-height: 2.4rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+}
+
+.reading-tools button:hover { background: var(--soft); transform: translateY(-1px); }
+.reading-tools button:active { transform: translateY(0); }
+
+/* 阅读进度环 */
+.tool-progress svg { display: block; }
+.tool-progress__track { stroke: var(--line); }
+.tool-progress__value { stroke: var(--ink); }
+
+/* ---- 图片灯箱 ---------------------------------------------------------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: var(--space-6);
+  border: 0;
+  background: #000b;
+  cursor: zoom-out;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
+}
+
+.lightbox.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+/* 关闭动画中（lightbox 已清空但仍在挂载）保持隐藏态 */
+.lightbox.closing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lightbox img {
+  max-width: min(100%, 1100px);
+  max-height: 90vh;
+  object-fit: contain;
+  transform: scale(.97);
+  transition: transform var(--duration-normal) var(--ease-standard);
+}
+
+.lightbox.open img { transform: scale(1); }
+
+.lightbox::after {
+  content: "按 Esc 或点击关闭";
+  position: absolute;
+  bottom: var(--space-6);
+  color: #fffdf6cc;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  letter-spacing: .04em;
+}
+
+/* ---- 中屏：目录改为浮层 ------------------------------------------------ */
+@media (max-width: 1100px) {
+  .post-page { max-width: var(--measure-page); }
+
+  .post-body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .toc {
+    position: fixed;
+    z-index: 15;
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: 5.5rem;
+    top: auto;
+    width: auto;
+    max-height: none;
+    padding: var(--space-4);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    box-shadow: var(--shadow-3);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
+  }
+
+  .toc.toc-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+}
+
+/* ---- 移动端 ------------------------------------------------------------ */
+@media (max-width: 700px) {
+  .reading-tools { right: var(--space-4); bottom: var(--space-4); }
+  .toc { bottom: 5rem; }
+
+  .post-nav {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    margin-top: var(--space-8);
+  }
+
+  .post-nav .previous-post,
+  .post-nav .next-post {
+    grid-column: 1;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .license-card { padding: var(--space-4); }
+}
+
+/* ---- 超小屏：工具条横铺，保证触控目标 ≥44px --------------------------- */
+@media (max-width: 420px) {
+  .reading-tools {
+    left: var(--gutter);
+    right: var(--gutter);
+    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
+    justify-content: space-between;
+  }
+
+  .reading-tools button { flex: 1 1 auto; min-height: 44px; }
+
+  .toc { bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+}

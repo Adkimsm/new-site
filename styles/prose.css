@@ -1,0 +1,253 @@
+/* ==========================================================================
+   正文排版 — 长文、代码块、表格、引用、脚注、图片、复制按钮
+   ========================================================================== */
+
+.prose {
+  max-width: var(--measure-prose);
+  font-size: var(--text-lg);
+  line-height: var(--leading-prose);
+  color: var(--body);
+}
+
+.prose > :first-child { margin-top: 0; }
+.prose > :last-child { margin-bottom: 0; }
+
+/* ---- 段落与强调 -------------------------------------------------------- */
+.prose p { margin: var(--space-5) 0; }
+.prose strong { color: var(--ink); font-weight: 700; }
+.prose em { font-style: italic; }
+.prose del { color: var(--muted); }
+
+/* ---- 标题：稳定的垂直节奏 ---------------------------------------------- */
+.prose h2,
+.prose h3,
+.prose h4 {
+  color: var(--ink);
+  line-height: var(--leading-snug);
+  letter-spacing: var(--tracking-tight);
+  text-wrap: balance;
+}
+
+.prose h2 {
+  margin: var(--space-9) 0 var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--line-soft);
+  font-size: var(--text-3xl);
+}
+
+.prose h3 { margin: var(--space-7) 0 var(--space-3); font-size: var(--text-2xl); }
+.prose h4 { margin: var(--space-6) 0 var(--space-2); font-size: var(--text-xl); }
+
+/* ---- 链接：下划线用弱线，悬停转墨色 ------------------------------------ */
+.prose a {
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  transition: text-decoration-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+
+.prose a:hover { color: var(--ink); text-decoration-color: var(--ink); }
+
+/* ---- 列表 -------------------------------------------------------------- */
+.prose ul,
+.prose ol {
+  margin: var(--space-5) 0;
+  padding-left: 1.4em;
+}
+
+.prose li + li { margin-top: var(--space-2); }
+.prose li > ul,
+.prose li > ol { margin: var(--space-2) 0; }
+.prose li::marker { color: var(--muted); }
+
+/* GFM 任务列表 */
+.prose .contains-task-list { padding-left: 0; }
+.prose .task-list-item { list-style: none; }
+.prose .task-list-item input[type="checkbox"] {
+  margin-right: .55em;
+  accent-color: var(--ink);
+}
+
+/* ---- 引用 -------------------------------------------------------------- */
+.prose blockquote {
+  margin: var(--space-7) 0;
+  padding: var(--space-3) 0 var(--space-3) var(--space-5);
+  border-left: 3px solid var(--line);
+  color: var(--muted);
+}
+
+.prose blockquote p { margin: var(--space-2) 0; }
+.prose blockquote > :first-child { margin-top: 0; }
+.prose blockquote > :last-child { margin-bottom: 0; }
+
+/* ---- 分隔线 ------------------------------------------------------------ */
+.prose hr {
+  height: 1px;
+  margin: var(--space-9) 0;
+  border: 0;
+  background: var(--line-soft);
+}
+
+/* ---- 行内代码 ---------------------------------------------------------- */
+.prose :not(pre) > code {
+  padding: .1rem .32rem;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-xs);
+  background: var(--soft);
+  font-family: var(--font-mono);
+  font-size: .88em;
+  overflow-wrap: break-word;
+}
+
+.prose kbd {
+  padding: .1rem .35rem;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-xs);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: .85em;
+}
+
+/* ---- 代码块 ------------------------------------------------------------ */
+.prose pre {
+  position: relative;
+  overflow: auto;
+  margin: var(--space-7) 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--soft);
+  font: .88rem/1.7 var(--font-mono);
+  tab-size: 2;
+}
+
+.prose pre code {
+  display: block;
+  min-width: max-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+}
+
+/* 一键复制：贴在代码块右上角，用 float 避免遮住首行代码 */
+.copy-code {
+  float: right;
+  margin: -.25rem 0 var(--space-2) var(--space-3);
+  padding: .3rem .45rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--muted);
+  line-height: 0;
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard);
+}
+
+.copy-code:hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+  background: var(--soft);
+}
+
+/* ---- shiki 双主题 ------------------------------------------------------
+   亮色为默认；暗色需要同时命中「系统偏好」与「手动选择」两条入口，
+   否则会出现「系统浅色 + 手动深色」时页面深、代码块浅的错配。 */
+.prose pre.shiki {
+  background: var(--shiki-light-bg, var(--soft)) !important;
+  color: var(--shiki-light) !important;
+}
+
+.prose pre.shiki span { color: var(--shiki-light) !important; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .prose pre.shiki {
+    background: var(--shiki-dark-bg, var(--soft)) !important;
+    color: var(--shiki-dark) !important;
+  }
+
+  :root:not([data-theme="light"]) .prose pre.shiki span { color: var(--shiki-dark) !important; }
+}
+
+:root[data-theme="dark"] .prose pre.shiki {
+  background: var(--shiki-dark-bg, var(--soft)) !important;
+  color: var(--shiki-dark) !important;
+}
+
+:root[data-theme="dark"] .prose pre.shiki span { color: var(--shiki-dark) !important; }
+
+/* ---- 表格 --------------------------------------------------------------
+   display:block + overflow 让宽表格在窄屏横向滚动，而不是撑破正文列。 */
+.prose table {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  margin: var(--space-7) 0;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  -webkit-overflow-scrolling: touch;
+}
+
+.prose th,
+.prose td {
+  padding: .6rem .75rem;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose thead th {
+  background: var(--soft);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+.prose tbody tr:nth-child(even) { background: var(--wash); }
+
+/* ---- 图片与图注 -------------------------------------------------------- */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  cursor: zoom-in;
+}
+
+.prose figure { margin: var(--space-7) 0; }
+.prose figure img { margin: 0; }
+
+.prose figcaption {
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  text-align: center;
+}
+
+/* ---- 脚注 -------------------------------------------------------------- */
+.prose .footnotes {
+  margin-top: var(--space-9);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.prose .footnotes h2 { margin: 0 0 var(--space-3); border: 0; padding: 0; font-size: var(--text-base); }
+.prose .footnotes ol { margin: 0; padding-left: 1.4em; }
+.prose [data-footnote-ref] { font-family: var(--font-sans); font-size: .78em; padding: 0 .15em; }
+
+/* ---- 移动端正文 -------------------------------------------------------- */
+@media (max-width: 700px) {
+  .prose {
+    font-size: var(--text-md);
+    line-height: 1.75;
+  }
+
+  .prose h2 { margin-top: var(--space-8); font-size: var(--text-2xl); }
+  .prose h3 { font-size: var(--text-xl); }
+  .prose pre { margin: var(--space-6) 0; padding: var(--space-4); font-size: .82rem; }
+}
