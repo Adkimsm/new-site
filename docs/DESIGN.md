@@ -2,7 +2,7 @@
 
 ## 1. 设计基调
 
-暖纸面、中文衬线、大留白、克制的墨色体系。层级只靠三档文字的明度差、发丝细线和留白表达，不使用大面积透明玻璃、不使用鲜艳强调色。
+中性灰阶、中文衬线、大留白、克制的单色体系。层级只靠三档文字的明度差、发丝细线和留白表达，不使用卡片阴影、不使用大面积透明玻璃、不使用强调色。首屏为居中的极简人物页，其余页面以左对齐的编辑排版为主。
 
 ## 2. 颜色
 
@@ -11,36 +11,36 @@
 亮色：
 
 ```text
-纸面      --paper       #FAF9F5
-内容表面  --surface     #FCFBF7
-主要文字  --ink         #141413
-正文文字  --body        #3A362C
-次要文字  --muted       #605B52
-细线      --line        #DED9CF
-加强细线  --line-strong #CDC7BB
-弱化表面  --soft        #F3EFE7
-表单底色  --field       #F6F2EA
+纸面      --paper       #FFFFFF
+内容表面  --surface     #FAFAFA
+主要文字  --ink         #1B1B1B
+正文文字  --body        #2C2C2C
+次要文字  --muted       #8F8F8F
+细线      --line        #ECECEC
+加强细线  --line-strong #D6D6D6
+弱化表面  --soft        #F5F5F5
+表单底色  --field       #FAFAFA
 ```
 
 暗色：
 
 ```text
-纸面      --paper       #1A1D20
-内容表面  --surface     #22262A
-主要文字  --ink         #F2ECE2
-正文文字  --body        #D8D1C5
-次要文字  --muted       #BCB5A9
-细线      --line        #4E555B
-加强细线  --line-strong #5B636A
-弱化表面  --soft        #2C3035
-表单底色  --field       #262A2E
+纸面      --paper       #121212
+内容表面  --surface     #1A1A1A
+主要文字  --ink         #E8E8E8
+正文文字  --body        #CFCFCF
+次要文字  --muted       #8A8A8A
+细线      --line        #2A2A2A
+加强细线  --line-strong #3A3A3A
+弱化表面  --soft        #1E1E1E
+表单底色  --field       #1A1A1A
 ```
 
 约束：
 
 - 正文与次要文字在两套主题下的对比度都不低于 4.5:1。
 - 不新增强调色。链接、焦点环、阅读进度环都在墨色体系内取色。
-- 早期文档里记的 `#FAF8F2` / `#1E1D1A` 等色值与实现不一致，现已按实现统一为上面的取值。
+- 早期文档里记的暖纸色值（如 `#FAF9F5` / `#1A1D20`）已废弃，改版后统一为上面的中性灰阶。
 
 ## 3. 字体
 
@@ -53,22 +53,23 @@
 ## 4. 排版
 
 ```text
-桌面正文    18px（--text-lg），行高 1.8
-移动正文    17px（--text-md），行高 1.75
-正文宽度    720px（--measure-prose）
-列表页宽度  760px（--measure-page）
+桌面正文    17px（--text-md），行高 1.8
+移动正文    16px（--text-base），行高 1.75
+正文宽度    700px（--measure-prose）
+列表页宽度  720px（--measure-page）
+日期列      6.5rem（--date-col）
 ```
 
 - 标题字距 `-0.02em` 至 `-0.04em`，`text-wrap: balance`。
-- eyebrow 标签行：`0.16em` 字距 + 大写 + 2.5rem 发丝短线。
-- 正文段落间距 `--space-5`，标题拥有稳定的垂直节奏（h2 上方 4rem）。
+- eyebrow 标签行：`0.16em` 字距 + 大写，无装饰短线。
+- 正文段落间距 `--space-5`，h2 上方 `--space-8`。
 
 ## 5. 间距、圆角、阴影
 
 ```text
 间距  --space-1 … --space-11   4px 起步，倍增至 6rem
-圆角  --radius-xs/sm/md/lg/pill   4 / 6 / 10 / 14 / 999px
-阴影  --shadow-1/2/3           三级；亮色用墨色低透明，暗色用黑色
+圆角  --radius-xs/sm/md/lg/pill   2 / 4 / 6 / 8 / 999px
+阴影  --shadow-1/2/3           三级但极轻；列表、导航、卡片均不使用阴影
 外壳  --shell-max 1080px   --gutter 1.5rem（≤420px 为 1.25rem）   --nav-height 72px
 ```
 
@@ -79,11 +80,15 @@
 - eyebrow：所有子页面顶部统一的标签行。
 - 按钮：墨底纸字，悬停反转为透明底墨字；最小高度 44px。
 - 胶囊 pill：标签与计数，1px 细线 + 全圆角。
-- 文章列表：日期列 110px + 内容列；悬停/聚焦时用极淡墨色条带（`--wash`），向两侧外扩 `--row-bleed`（移动 .5rem / 宽屏 .75rem），文字在条带内保留真实内边距。条带是绝对定位的 `::after` + 行上的 `isolation: isolate`（负 z-index 因此只在本行内生效），**不修改行盒尺寸**，所以时间轴节点偏移无需重算。触屏不给 hover 反馈：hover 规则包在 `@media (hover: hover)` 里，键盘用 `:focus-within`，点按用 `:active`。
+- 导航：未滚动时完全透明、与页面融合；滚动后只留一条 `--line` 底边与轻模糊（`backdrop-filter`），不使用纸张背景块、不加阴影。
+- 首页首屏：居中的头像（112px，1px 细线圆环）+ 名字 + 一句自述 + 一行文字入口。不使用分隔线、下箭头或网格装饰。
+- 页脚：单行——左侧版权，右侧一行灰字链接，无分组标题与卡片。
+- 文章列表：日期列 6.5rem（灰色小字）+ 标题列。悬停时标题加下划线、日期加深；不使用背景条带与卡片边框。触屏不给 hover 反馈（hover 规则包在 `@media (hover: hover)` 里），键盘用 `:focus-within`。
 - 正文列表：`list-style-position: outside` 的列表必须保留 `padding-left`（1.4em）。**不要**给 `.contains-task-list` 清零缩进：remark-gfm 给“只要含任务项”的整个列表加这个类，清零会把普通项的 disc 标记画到盒子外，实测落在 x≈2px。
 - 代码块复制按钮：`ReadingTools` 会把 `pre` 包进一层 `.code-block`（`position: relative`），按钮挂在这一层、作为 `pre` 的兄弟。**不能**把按钮放进 `pre`，也不能给 `.prose pre` 加 `position: relative`：`pre` 是 `overflow: auto` 的滚动容器，一旦按钮的包含块落在滚动容器内，横向滚动代码时它就会跟着跑。按钮绝对定位在卡片右上角（不参与布局；早先用 float 时它会落在流的末尾、掉到代码下方并把卡片撑高约 36px），默认 `opacity: 0`，在 `.code-block:hover`（仅 hover 设备）、`.code-block:focus-within` 或按钮 `:focus-visible` 时显形。用 opacity 而不是 `visibility/display`，保证仍可 Tab 到达。
-- 精选文章：内容列左侧 2px 墨色实线 + 「精选」徽章。
-- 时间轴：统一左侧单轴 + 节点。不使用桌面中央轴 —— 中央轴会把年份标签挤进左槽、产生锯齿状留白，单轴只保留一条阅读边。
+- 精选文章：标题前一个小圆点，不使用徽章与左侧竖线。
+- 归档（`/posts`）：按年份分组，年份标题 + 文章数；组内是日期 + 标题的纯文字行。不使用时间轴竖线与节点。
+- 授权卡：顶部一条细线的说明块（不是卡片），说明作者、许可与原文链接。
 - 目录：宽屏是正文网格内的粘性轨（宽度由 `--measure-prose` 推导，不再硬编码坐标）；≤1100px 变为浮层，由阅读工具里的目录按钮开关。
 - 阅读工具：固定右下；≤420px 横铺为底部工具条，触控目标不小于 44px。
 
@@ -119,7 +124,7 @@
 tokens.css      设计令牌
 base.css        reset、文档、链接、选区、焦点、辅助类、减少动效
 layout.css      版心、页首、分节、导航、移动菜单、首屏、页脚
-components.css  eyebrow、按钮、胶囊、表单、空状态、链接列表、文章列表、时间轴
+components.css  eyebrow、按钮、胶囊、表单、空状态、链接列表、文章列表、归档
 prose.css       正文排版、代码块、表格、脚注、图片
 reading.css     文章页版式、目录、阅读工具、授权卡、灯箱
 fonts.css       自托管字体切片

@@ -9,23 +9,23 @@
    ========================================================================== */
 
 :root {
-  /* 纸面与墨色（亮色） */
-  --paper: #faf9f5;
-  --surface: #fcfbf7;
-  --ink: #141413;
-  --body: #3a362c;
-  --muted: #605b52;
-  --line: #ded9cf;
-  --line-soft: rgba(20, 20, 19, .12);
-  --line-strong: #cdc7bb;
-  --soft: #f3efe7;
-  --field: #f6f2ea;
-  --wash: rgba(20, 20, 19, .04);
+  /* 纸面与墨色（亮色）：中性灰阶，不带暖色 */
+  --paper: #ffffff;
+  --surface: #fafafa;
+  --ink: #1b1b1b;
+  --body: #2c2c2c;
+  --muted: #8f8f8f;
+  --line: #ececec;
+  --line-soft: rgba(0, 0, 0, .07);
+  --line-strong: #d6d6d6;
+  --soft: #f5f5f5;
+  --field: #fafafa;
+  --wash: rgba(0, 0, 0, .03);
 
-  /* 阴影（三级，克制） */
-  --shadow-1: 0 1px 2px rgba(20, 20, 19, .05);
-  --shadow-2: 0 8px 24px rgba(20, 20, 19, .07);
-  --shadow-3: 0 18px 48px rgba(20, 20, 19, .10);
+  /* 阴影（三级，克制；首版几乎没有卡片阴影） */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .04);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, .06);
+  --shadow-3: 0 12px 32px rgba(0, 0, 0, .10);
 
   /* 间距标度 */
   --space-1: .25rem;
@@ -40,11 +40,11 @@
   --space-10: 5rem;
   --space-11: 6rem;
 
-  /* 圆角标度 */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  /* 圆角标度（克制） */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
   --radius-pill: 999px;
 
   /* 字号标度 */
@@ -57,7 +57,6 @@
   --text-2xl: 1.5rem;
   --text-3xl: clamp(1.75rem, 3vw, 2.25rem);
   --text-display: clamp(2.4rem, 6vw, 4rem);
-  --text-hero: clamp(2.2rem, 11vw, 3.2rem);
 
   /* 行高与字距 */
   --leading-tight: 1.2;
@@ -72,15 +71,11 @@
   --shell-max: 1080px;
   --gutter: 1.5rem;
   --nav-height: 72px;
-  --measure-prose: 720px;
-  --measure-page: 760px;
+  --measure-prose: 700px;
+  --measure-page: 720px;
   --toc-width: 190px;
   --toc-gap: 2.5rem;
-  --date-col: 110px;
-
-  /* 列表行悬停/聚焦色带向两侧外扩的量（移动优先：窄屏给更小的值，
-     保证色带不会顶到屏幕边缘）。必须小于 --gutter。 */
-  --row-bleed: .5rem;
+  --date-col: 6.5rem;
 
   /* 页首留白：由导航高度推导，改导航高度只需改 --nav-height */
   --page-pad-top: calc(var(--nav-height) + 4.5rem);
@@ -104,29 +99,24 @@
   color-scheme: light;
 }
 
-/* 移动优先：宽屏才把色带外扩量放大 */
-@media (min-width: 701px) {
-  :root { --row-bleed: .75rem; }
-}
-
 /* 暗色：系统偏好（未手动选浅色时生效） */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #1a1d20;
-    --surface: #22262a;
-    --ink: #f2ece2;
-    --body: #d8d1c5;
-    --muted: #bcb5a9;
-    --line: #4e555b;
-    --line-soft: rgba(242, 236, 226, .14);
-    --line-strong: #5b636a;
-    --soft: #2c3035;
-    --field: #262a2e;
-    --wash: rgba(242, 236, 226, .05);
+    --paper: #121212;
+    --surface: #1a1a1a;
+    --ink: #e8e8e8;
+    --body: #cfcfcf;
+    --muted: #8a8a8a;
+    --line: #2a2a2a;
+    --line-soft: rgba(255, 255, 255, .09);
+    --line-strong: #3a3a3a;
+    --soft: #1e1e1e;
+    --field: #1a1a1a;
+    --wash: rgba(255, 255, 255, .04);
 
-    --shadow-1: 0 1px 2px rgba(0, 0, 0, .35);
-    --shadow-2: 0 8px 24px rgba(0, 0, 0, .45);
-    --shadow-3: 0 18px 48px rgba(0, 0, 0, .55);
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+    --shadow-2: 0 4px 16px rgba(0, 0, 0, .5);
+    --shadow-3: 0 12px 32px rgba(0, 0, 0, .6);
 
     color-scheme: dark;
   }
@@ -134,21 +124,21 @@
 
 /* 暗色：手动选择（覆盖系统偏好） */
 :root[data-theme="dark"] {
-  --paper: #1a1d20;
-  --surface: #22262a;
-  --ink: #f2ece2;
-  --body: #d8d1c5;
-  --muted: #bcb5a9;
-  --line: #4e555b;
-  --line-soft: rgba(242, 236, 226, .14);
-  --line-strong: #5b636a;
-  --soft: #2c3035;
-  --field: #262a2e;
-  --wash: rgba(242, 236, 226, .05);
+  --paper: #121212;
+  --surface: #1a1a1a;
+  --ink: #e8e8e8;
+  --body: #cfcfcf;
+  --muted: #8a8a8a;
+  --line: #2a2a2a;
+  --line-soft: rgba(255, 255, 255, .09);
+  --line-strong: #3a3a3a;
+  --soft: #1e1e1e;
+  --field: #1a1a1a;
+  --wash: rgba(255, 255, 255, .04);
 
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, .35);
-  --shadow-2: 0 8px 24px rgba(0, 0, 0, .45);
-  --shadow-3: 0 18px 48px rgba(0, 0, 0, .55);
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, .4);
+  --shadow-2: 0 4px 16px rgba(0, 0, 0, .5);
+  --shadow-3: 0 12px 32px rgba(0, 0, 0, .6);
 
   color-scheme: dark;
 }

@@ -21,24 +21,18 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <main id="content" className="main">{children}</main>
     <footer>
       <div className="footer-inner">
-        <div className="footer-brand">
-          <span className="footer-copy">© {new Date().getFullYear()} Adkinsm</span>
-          <span>{siteConfig.description}</span>
-        </div>
-        <div className="footer-groups">
-          <div className="footer-group">
-            <span className="footer-group__title">内容</span>
-            <Link href="/posts">文章</Link><Link href="/about">关于</Link><Link href="/links">链接</Link>
-          </div>
-          <div className="footer-group">
-            <span className="footer-group__title">许可</span>
-            <Link href="/copyright">{siteConfig.contentLicense}</Link><Link href="/privacy">隐私</Link><Link href="/disclaimer">免责声明</Link>
-          </div>
-          <div className="footer-group">
-            <span className="footer-group__title">联系</span>
-            <a href={siteConfig.github}>GitHub</a><a href={`mailto:${siteConfig.email}`}>邮箱</a><Link href="/rss.xml">RSS</Link>
-          </div>
-        </div>
+        <p className="footer-copy">© {new Date().getFullYear()} Adkinsm</p>
+        <nav className="footer-links" aria-label="页脚导航">
+          <Link href="/posts">文章</Link>
+          <Link href="/about">关于</Link>
+          <Link href="/links">链接</Link>
+          <Link href="/copyright">{siteConfig.contentLicense}</Link>
+          <Link href="/privacy">隐私</Link>
+          <Link href="/disclaimer">免责声明</Link>
+          <a href={siteConfig.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href={`mailto:${siteConfig.email}`}>邮箱</a>
+          <Link href="/rss.xml">RSS</Link>
+        </nav>
       </div>
     </footer>
   </body></html>;

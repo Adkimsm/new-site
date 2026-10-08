@@ -4,7 +4,7 @@
 
 .prose {
   max-width: var(--measure-prose);
-  font-size: var(--text-lg);
+  font-size: var(--text-md);
   line-height: var(--leading-prose);
   color: var(--body);
 }
@@ -29,14 +29,12 @@
 }
 
 .prose h2 {
-  margin: var(--space-9) 0 var(--space-4);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--line-soft);
-  font-size: var(--text-3xl);
+  margin: var(--space-8) 0 var(--space-4);
+  font-size: var(--text-2xl);
 }
 
-.prose h3 { margin: var(--space-7) 0 var(--space-3); font-size: var(--text-2xl); }
-.prose h4 { margin: var(--space-6) 0 var(--space-2); font-size: var(--text-xl); }
+.prose h3 { margin: var(--space-7) 0 var(--space-3); font-size: var(--text-xl); }
+.prose h4 { margin: var(--space-6) 0 var(--space-2); font-size: var(--text-lg); }
 
 /* ---- 链接：下划线用弱线，悬停转墨色 ------------------------------------ */
 .prose a {
@@ -74,9 +72,9 @@
 
 /* ---- 引用 -------------------------------------------------------------- */
 .prose blockquote {
-  margin: var(--space-7) 0;
-  padding: var(--space-3) 0 var(--space-3) var(--space-5);
-  border-left: 3px solid var(--line);
+  margin: var(--space-6) 0;
+  padding: 0 0 0 var(--space-5);
+  border-left: 2px solid var(--line-strong);
   color: var(--muted);
 }
 
@@ -116,12 +114,12 @@
 /* ---- 代码块 ------------------------------------------------------------ */
 .prose pre {
   overflow: auto;
-  margin: var(--space-7) 0;
-  padding: var(--space-5);
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md);
-  background: var(--soft);
-  font: .88rem/1.7 var(--font-mono);
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: .85rem/1.7 var(--font-mono);
   tab-size: 2;
 }
 
@@ -248,7 +246,6 @@
 .prose img {
   max-width: 100%;
   height: auto;
-  border: 1px solid var(--line-soft);
   border-radius: var(--radius-sm);
   cursor: zoom-in;
 }
@@ -280,12 +277,12 @@
 /* ---- 移动端正文 -------------------------------------------------------- */
 @media (max-width: 700px) {
   .prose {
-    font-size: var(--text-md);
+    font-size: var(--text-base);
     line-height: 1.75;
   }
 
-  .prose h2 { margin-top: var(--space-8); font-size: var(--text-2xl); }
-  .prose h3 { font-size: var(--text-xl); }
-  .code-block { margin: var(--space-6) 0; }
+  .prose h2 { margin-top: var(--space-7); font-size: var(--text-xl); }
+  .prose h3 { font-size: var(--text-lg); }
+  .code-block { margin: var(--space-5) 0; }
   .code-block > pre { padding: var(--space-4); font-size: .82rem; }
 }

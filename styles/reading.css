@@ -79,20 +79,15 @@
 .post-cover {
   width: 100%;
   height: auto;
-  border: 1px solid var(--line-soft);
-  border-radius: var(--radius-md);
-  transition: transform var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+  border-radius: var(--radius-sm);
 }
 
-.post-cover:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
-
-/* ---- 授权卡 ------------------------------------------------------------ */
+/* ---- 授权卡 ------------------------------------------------------------
+   由卡片改成顶部细线的说明块，更贴近整体编辑排版。 */
 .license-card {
   margin-top: var(--space-9);
-  padding: var(--space-5);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--soft);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
   color: var(--muted);
   font-family: var(--font-sans);
   font-size: var(--text-xs);
@@ -134,24 +129,19 @@
 .post-nav a {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface);
+  gap: var(--space-1);
+  text-decoration: none;
+}
+
+.post-nav a > span:last-child {
   color: var(--ink);
   font-size: var(--text-base);
   line-height: var(--leading-snug);
-  text-decoration: none;
-  transition: border-color var(--duration-fast) var(--ease-standard), background-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+  text-underline-offset: 4px;
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
-.post-nav a:hover {
-  border-color: var(--line-strong);
-  background: var(--soft);
-  transform: translateY(-1px);
-  text-decoration: none;
-}
+.post-nav a:hover > span:last-child { text-decoration: underline; }
 
 /* 只有一篇相邻文章时也要落在正确的一侧 */
 .post-nav .previous-post { grid-column: 1; }
@@ -176,8 +166,8 @@
   padding: var(--space-1);
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: var(--surface);
-  box-shadow: var(--shadow-2);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(10px);
 }
 
 .reading-tools button {

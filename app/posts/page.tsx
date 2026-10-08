@@ -1,4 +1,26 @@
 import Link from "next/link";
 import { getPosts, groupPosts } from "@/lib/content/posts";
 export const metadata = { title: "文章" };
-export default function Posts() { const grouped = groupPosts(getPosts()); return <section className="page"><header className="page-header"><span className="eyebrow">Archive</span><h1>文章</h1><p className="lede">按时间记录正在发生的思考。</p></header><div className="timeline">{Object.entries(grouped).map(([year, months]) => <section className="timeline-group" key={year}><h2 className="timeline-year">{year}</h2>{Object.entries(months).map(([month, posts]) => <div className="timeline-month" key={month}><h3 className="month">{month} · {posts.length} 篇</h3><ul className="post-list">{posts.map((post) => <li className={`post-item ${post.featured ? "post-item--featured" : ""}`} key={post.slug}><div className="post-date"><time dateTime={post.date}>{post.date}</time><span className="post-length">{post.wordCount} 字</span></div><div className="post-content">{post.featured && <span className="post-badge">精选</span>}<Link className="post-title" href={`/posts/${post.slug}`}>{post.title}</Link><p className="post-description">{post.description}</p></div></li>)}</ul></div>)}</section>)}</div></section>; }
+export default function Posts() {
+  const grouped = groupPosts(getPosts());
+  return <section className="page">
+    <header className="page-header">
+      <h1>文章</h1>
+      <p className="lede">按时间记录正在发生的思考。</p>
+    </header>
+    <div className="archive">
+      {Object.entries(grouped).map(([year, months]) => {
+        const posts = Object.values(months).flat();
+        return <section className="archive-year" key={year}>
+          <h2 className="archive-year__title">{year}<span className="archive-year__count">{posts.length} 篇</span></h2>
+          <ul className="post-list">
+            {posts.map((post) => <li className={`post-item ${post.featured ? "post-item--featured" : ""}`} key={post.slug}>
+              <time className="post-date" dateTime={post.date}>{post.date}</time>
+              <Link className="post-title" href={`/posts/${post.slug}`}>{post.title}</Link>
+            </li>)}
+          </ul>
+        </section>;
+      })}
+    </div>
+  </section>;
+}
