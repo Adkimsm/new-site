@@ -187,12 +187,12 @@
   background: none;
   border: 0;
   border-radius: var(--radius-sm);
-  color: var(--ink);
+  color: var(--muted);
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-standard);
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
 
-.menu:hover { background: var(--soft); }
+.menu:hover { background: var(--soft); color: var(--ink); }
 
 .menu-icon {
   position: absolute;
