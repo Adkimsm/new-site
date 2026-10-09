@@ -414,7 +414,6 @@ footer {
     gap: var(--space-5);
     font-size: clamp(2rem, 9vw, 4rem);
     line-height: var(--leading-tight);
-    transform: translateY(-18px);
   }
 
   .mobile-menu-inner a { text-decoration: none; }
