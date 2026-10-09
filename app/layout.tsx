@@ -7,6 +7,36 @@ import "./globals.css";
 
 export const metadata: Metadata = { metadataBase: new URL(siteConfig.url), title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` }, description: siteConfig.description, alternates: { canonical: siteConfig.url, types: { "application/rss+xml": `${siteConfig.url}/rss.xml` } }, openGraph: { title: siteConfig.name, description: siteConfig.description, url: siteConfig.url, type: "website", images: [{ url: `${siteConfig.url}/images/avatar.jpg`, alt: "Adkinsm" }] }, twitter: { card: "summary_large_image", title: siteConfig.name, description: siteConfig.description, images: [`${siteConfig.url}/images/avatar.jpg`] } };
 
+type FooterLink = { href: string; label: string; external?: boolean };
+
+/** 页脚按用途分组：站内导航 / 站内条款 / 站外联系，避免全部挤在一行。 */
+const FOOTER_GROUPS: { label: string; links: FooterLink[] }[] = [
+  {
+    label: "导航",
+    links: [
+      { href: "/posts", label: "文章" },
+      { href: "/about", label: "关于" },
+      { href: "/links", label: "链接" }
+    ]
+  },
+  {
+    label: "条款",
+    links: [
+      { href: "/copyright", label: siteConfig.contentLicense },
+      { href: "/privacy", label: "隐私" },
+      { href: "/disclaimer", label: "免责声明" }
+    ]
+  },
+  {
+    label: "联系",
+    links: [
+      { href: siteConfig.github, label: "GitHub", external: true },
+      { href: `mailto:${siteConfig.email}`, label: "邮箱", external: true },
+      { href: "/rss.xml", label: "RSS" }
+    ]
+  }
+];
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const person = { "@context": "https://schema.org", "@type": "Person", name: siteConfig.name, url: siteConfig.url, image: `${siteConfig.url}${siteConfig.avatar}`, sameAs: [siteConfig.github] };
   const website = { "@context": "https://schema.org", "@type": "WebSite", name: siteConfig.name, url: siteConfig.url, description: siteConfig.description, publisher: { "@type": "Person", name: siteConfig.author } };
@@ -22,17 +52,24 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <footer>
       <div className="footer-inner">
         <p className="footer-copy">© {new Date().getFullYear()} Adkinsm</p>
-        <nav className="footer-links" aria-label="页脚导航">
-          <Link href="/posts">文章</Link>
-          <Link href="/about">关于</Link>
-          <Link href="/links">链接</Link>
-          <Link href="/copyright">{siteConfig.contentLicense}</Link>
-          <Link href="/privacy">隐私</Link>
-          <Link href="/disclaimer">免责声明</Link>
-          <a href={siteConfig.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-          <a href={`mailto:${siteConfig.email}`}>邮箱</a>
-          <Link href="/rss.xml">RSS</Link>
-        </nav>
+        <div className="footer-groups">
+          {FOOTER_GROUPS.map((group) => (
+            <nav key={group.label} className="footer-group" aria-label={group.label}>
+              <p className="footer-group-title">{group.label}</p>
+              <ul>
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    {link.external ? (
+                      <a href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noopener noreferrer" : undefined}>{link.label}</a>
+                    ) : (
+                      <Link href={link.href}>{link.label}</Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ))}
+        </div>
       </div>
     </footer>
   </body></html>;
