@@ -308,6 +308,7 @@
     grid-template-columns: auto minmax(0, 1fr);
   }
 
+  .post-nav .next-post::before { grid-column: 1; }
   .post-nav .next-post > span { grid-column: 2; }
 
   /* 两条之间用细线分隔（仅当上下篇都存在时） */
