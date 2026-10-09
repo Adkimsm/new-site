@@ -124,8 +124,6 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <div className={`search-overlay ${open ? "open" : ""}`} onMouseDown={(event) => { if (!panelRef.current?.contains(event.target as Node)) onClose(); }}>
-      <div className="search-backdrop" aria-hidden="true" />
-      <div className="search-tint" aria-hidden="true" />
       <button type="button" className="search-dismiss" aria-label="关闭搜索" title="关闭搜索" onClick={onClose}><CloseIcon size={20} /></button>
 
       <div ref={panelRef} className="search-panel search" role="dialog" aria-modal="true" aria-labelledby="search-title">

@@ -100,11 +100,9 @@ a.pill:hover {
 }
 
 /* ---- 搜索浮层（全站可用，不再有独立页面） ------------------------------
-   全屏高不透明度纸面 + 轻模糊；居中大号衬线输入框与结果列，
-   骨架参考 yunyoujun.cn，但模糊强度与配色收进本站设计约束。
-
-   模糊层与淡入层刻意分开：对带 backdrop-filter 的元素做 opacity 过渡会让
-   浏览器逐帧重算整屏模糊，导致反复开关时卡顿；这里模糊层零动画。 */
+   全屏不透明纸面，居中大号衬线输入框与结果列，骨架参考 yunyoujun.cn。
+   背景不透明且没有 backdrop-filter，可以直接对浮层做 opacity 过渡，
+   不会逐帧重算模糊，反复开关也顺滑。 */
 .search-overlay {
   position: fixed;
   inset: 0;
@@ -113,45 +111,23 @@ a.pill:hover {
   flex-direction: column;
   align-items: center;
   padding: clamp(3rem, 10vh, 6rem) var(--gutter) var(--space-5);
+  background: var(--paper);
+  opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: visibility 0s linear var(--duration-normal);
+  transition: opacity var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
 }
 
 .search-overlay.open {
+  opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transition-delay: 0s;
 }
 
-/* 模糊层：静态、无任何过渡，只随浮层显隐 */
-.search-backdrop {
-  position: absolute;
-  inset: 0;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-}
-
-/* 不支持背景模糊时降级为不透明纸面 */
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .search-backdrop { background: var(--paper); }
-}
-
-/* 染色层：只做 opacity 淡入淡出，廉价且不触发重模糊 */
-.search-tint {
-  position: absolute;
-  inset: 0;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  opacity: 0;
-  transition: opacity var(--duration-normal) var(--ease-standard);
-}
-
-.search-overlay.open .search-tint { opacity: 1; }
-
 /* 右上角关闭按钮 */
 .search-dismiss {
   position: absolute;
-  z-index: 1;
   top: var(--space-5);
   right: var(--space-5);
   display: inline-flex;
@@ -171,21 +147,18 @@ a.pill:hover {
 .search-dismiss:hover { background: var(--soft); color: var(--ink); }
 .search-dismiss svg { display: block; }
 
-/* 居中内容列：输入框 + 状态 + 结果 + 提示；z-index 盖在模糊/染色层之上 */
+/* 居中内容列：输入框 + 状态 + 结果 + 提示 */
 .search-panel {
-  position: relative;
-  z-index: 1;
   width: min(100%, 44rem);
   max-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  opacity: 0;
   transform: translateY(-10px);
-  transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
+  transition: transform var(--duration-normal) var(--ease-standard);
 }
 
-.search-overlay.open .search-panel { opacity: 1; transform: translateY(0); }
+.search-overlay.open .search-panel { transform: translateY(0); }
 
 /* 大号衬线输入框：居中文字、透明底、细边框 */
 .search-field { width: 100%; }
