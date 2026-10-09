@@ -311,7 +311,8 @@ footer {
 /* ---- 移动端 ------------------------------------------------------------ */
 @media (max-width: 700px) {
   .desktop-links { display: none; }
-  .menu { display: block; }
+  /* 菜单按钮需浮在全屏菜单遮罩（z-index: 20）之上，否则关闭按钮会被遮住 */
+  .menu { display: block; z-index: 30; }
 
   /* 移动端触控目标放大到 44px（导航右侧控件与菜单按钮） */
   .menu,
