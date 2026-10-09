@@ -149,12 +149,27 @@
   border-top: 1px solid var(--line-soft);
 }
 
+/* 每条 = 箭头列 + 文字列；箭头由伪元素生成，跨两行垂直居中 */
 .post-nav a {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-2);
+  row-gap: var(--space-1);
+  align-items: center;
   text-decoration: none;
 }
+
+.post-nav a::before {
+  content: "←";
+  grid-column: 1;
+  grid-row: 1 / -1;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  line-height: 1;
+  transition: transform var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+
+.post-nav a > span { grid-column: 2; }
 
 .post-nav a > span:last-child {
   color: var(--ink);
@@ -168,7 +183,18 @@
 
 /* 只有一篇相邻文章时也要落在正确的一侧 */
 .post-nav .previous-post { grid-column: 1; }
-.post-nav .next-post { grid-column: 2; align-items: flex-end; text-align: right; }
+
+/* 下一篇：落在右列，文字在左、箭头在右（外侧），方向与上一篇对称 */
+.post-nav .next-post {
+  grid-column: 2;
+  grid-template-columns: minmax(0, 1fr) auto;
+  text-align: right;
+}
+.post-nav .next-post > span { grid-column: 1; }
+.post-nav .next-post::before { content: "→"; grid-column: 2; }
+
+.post-nav .previous-post:hover::before { color: var(--ink); transform: translateX(-3px); }
+.post-nav .next-post:hover::before { color: var(--ink); transform: translateX(3px); }
 
 .post-nav-label {
   color: var(--muted);
@@ -267,15 +293,28 @@
 
   .post-nav {
     grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-3);
+    gap: 0;
     margin-top: var(--space-8);
   }
 
   .post-nav .previous-post,
   .post-nav .next-post {
     grid-column: 1;
-    align-items: flex-start;
     text-align: left;
+  }
+
+  /* 移动端箭头统一移到行首，两行扫描方式一致 */
+  .post-nav .next-post {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .post-nav .next-post > span { grid-column: 2; }
+
+  /* 两条之间用细线分隔（仅当上下篇都存在时） */
+  .post-nav a + a {
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--line-soft);
   }
 
   .license-card { padding: var(--space-4); }
