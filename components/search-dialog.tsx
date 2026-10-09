@@ -8,15 +8,10 @@ import { getSnippet, highlight, searchPosts, type SearchPost } from "@/lib/searc
 
 type Status = "idle" | "loading" | "ready" | "error";
 
-/** 关闭动画时长，与 CSS 的 --duration-normal 保持一致，用于卸载前等待淡出。 */
-const CLOSE_DELAY = 240;
-
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [posts, setPosts] = useState<SearchPost[]>([]);
   const [status, setStatus] = useState<Status>("idle");
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
   const [active, setActive] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -32,24 +27,6 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   resultsRef.current = results;
   const activeRef = useRef(active);
   activeRef.current = active;
-
-  // 打开：先挂载，下一帧再加 visible，确保首次打开也有淡入 + 上浮过渡
-  useEffect(() => {
-    if (!open) return;
-    setMounted(true);
-    const raf = requestAnimationFrame(() => setVisible(true));
-    return () => window.cancelAnimationFrame(raf);
-  }, [open]);
-
-  // 关闭：先退出，动画结束后再卸载
-  useEffect(() => {
-    if (open) return;
-    setVisible(false);
-    setActive(-1);
-    if (!mounted) return;
-    const timer = window.setTimeout(() => setMounted(false), CLOSE_DELAY);
-    return () => window.clearTimeout(timer);
-  }, [open, mounted]);
 
   // 首次打开时按需拉取静态索引；用 ref 记录是否已加载，避免把 status 放进依赖
   // 导致「设为 loading → 依赖变化 → cleanup 取消自己」的竞态
@@ -73,9 +50,12 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       });
   }, [open]);
 
-  // 打开期间：聚焦输入框、锁定滚动、键盘操作、焦点陷阱、关闭后归还焦点
+  // 浮层常驻 DOM，只用 open 类切换显隐。元素从页面加载起就以关闭态绘制过，
+  // 打开时的类变化必然触发过渡；若改成「挂载后下一帧再切类」，React 常会在
+  // 浏览器首次绘制前把两次更新合并提交，导致首次打开没有过渡。
   useEffect(() => {
     if (!open) return;
+    setActive(-1);
     restoreRef.current = document.activeElement as HTMLElement | null;
     const raf = requestAnimationFrame(() => inputRef.current?.focus());
 
@@ -140,12 +120,10 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
     document.getElementById(`search-result-${active}`)?.scrollIntoView({ block: "nearest" });
   }, [active]);
 
-  if (!mounted) return null;
-
   const statusText = status === "loading" ? "正在加载搜索索引…" : hasQuery ? `找到 ${results.length} 篇文章` : "";
 
   return (
-    <div className={`search-overlay ${visible ? "open" : "closing"}`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <div className={`search-overlay ${open ? "open" : ""}`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <button type="button" className="search-dismiss" aria-label="关闭搜索" title="关闭搜索" onClick={onClose}><CloseIcon size={20} /></button>
 
       <div ref={panelRef} className="search-panel search" role="dialog" aria-modal="true" aria-labelledby="search-title">

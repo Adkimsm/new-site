@@ -131,12 +131,6 @@ a.pill:hover {
   transition-delay: 0s;
 }
 
-.search-overlay.closing {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
 /* 右上角关闭按钮 */
 .search-dismiss {
   position: absolute;
