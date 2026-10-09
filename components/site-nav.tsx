@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { MenuButton } from "@/components/menu-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SearchIcon } from "@/components/icons";
+import { useSearch } from "@/components/search-provider";
 
 const NAV_LINKS = [
   { href: "/posts", label: "文章" },
   { href: "/about", label: "关于" },
   { href: "/links", label: "链接" },
-  { href: "/search", label: "搜索" },
   { href: "/rss.xml", label: "RSS" }
 ] as const;
 
@@ -20,6 +21,7 @@ const LINK_PAGES = NAV_LINKS.filter(({ href }) => href !== "/rss.xml");
 export function SiteNav() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
+  const { setOpen } = useSearch();
 
   useEffect(() => {
     const update = () => setScrolled(window.scrollY > 12);
@@ -46,6 +48,7 @@ export function SiteNav() {
               </Link>
             ))}
           </nav>
+          <button type="button" className="search-trigger" aria-label="搜索" title="搜索" onClick={() => setOpen(true)}><SearchIcon /></button>
           <ThemeToggle />
           <MenuButton />
         </div>

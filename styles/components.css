@@ -125,6 +125,90 @@ a.pill:hover {
 
 .search-results { margin-top: var(--space-4); }
 
+/* ---- 搜索浮层（全站可用，不再有独立页面） ------------------------------
+   遮罩压暗页面，面板居中偏上；面板本身是实体纸面，不是玻璃。 */
+.search-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(3.5rem, 12vh, 8rem) var(--gutter) var(--space-6);
+  background: color-mix(in srgb, var(--ink) 30%, transparent);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
+}
+
+.search-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+.search-overlay.closing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.search-panel {
+  width: min(100%, 40rem);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+  transform: translateY(-10px);
+  transition: transform var(--duration-normal) var(--ease-standard);
+}
+
+.search-overlay.open .search-panel { transform: translateY(0); }
+
+/* 关闭按钮贴在输入框右侧 */
+.search-close {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
+}
+
+.search-close:hover { background: var(--soft); color: var(--ink); }
+.search-close svg { display: block; }
+
+/* 为右侧关闭按钮让位 */
+.search-panel .search-input { padding-right: calc(var(--space-4) + 28px); }
+
+/* 结果区在面板内滚动：min-height:0 让 flex 子项可收缩并触发 overflow */
+.search-panel .search-results {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 700px) {
+  .search-overlay { padding: calc(var(--nav-height) + env(safe-area-inset-top)) var(--space-3) var(--space-3); }
+  .search-panel { padding: var(--space-4); }
+}
+
 /* ---- 空状态（无结果、404） -------------------------------------------- */
 .empty-state {
   display: flex;

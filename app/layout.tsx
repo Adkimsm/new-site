@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { SearchProvider } from "@/components/search-provider";
 import { siteConfig } from "@/lib/site-config";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
@@ -47,8 +48,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     {/* 只预载 latin 切片；CJK 切片体积大且按需命中，预载反而拖慢首屏 */}
     <link rel="preload" href="/fonts/noto-serif-sc-latin.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify([person, website]) }} />
-    <a className="skip" href="#content">跳到正文</a><SiteNav />
-    <main id="content" className="main">{children}</main>
+    <SearchProvider>
+      <a className="skip" href="#content">跳到正文</a><SiteNav />
+      <main id="content" className="main">{children}</main>
+    </SearchProvider>
     <footer>
       <div className="footer-inner">
         <p className="footer-copy">© {new Date().getFullYear()} Adkinsm</p>

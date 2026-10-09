@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon, MenuIcon } from "@/components/icons";
+import { useSearch } from "@/components/search-provider";
 
 export function MenuButton() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { setOpen: setSearchOpen } = useSearch();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
@@ -52,6 +54,7 @@ export function MenuButton() {
   }, [open]);
 
   const close = () => setOpen(false);
+  const openSearch = () => { close(); setSearchOpen(true); };
   const toggle = () => {
     if (open) close();
     else {
@@ -64,5 +67,5 @@ export function MenuButton() {
     const timer = window.setTimeout(() => setMounted(false), 240);
     return () => window.clearTimeout(timer);
   }, [open, mounted]);
-  return <><button ref={buttonRef} className={`menu ${open ? "is-open" : ""}`} aria-label={open ? "关闭菜单" : "打开菜单"} aria-expanded={open} aria-controls="mobile-nav" onClick={toggle}><span className="menu-icon menu-icon-open"><MenuIcon /></span><span className="menu-icon menu-icon-close"><CloseIcon /></span></button>{mounted && <nav ref={menuRef} id="mobile-nav" className={`mobile-menu ${open ? "open" : "closing"}`} aria-label="移动端导航" onClick={(event) => { if (event.target === event.currentTarget) close(); }}><div className="mobile-menu-inner"><Link ref={firstLinkRef} onClick={close} href="/posts">文章</Link><Link onClick={close} href="/about">关于</Link><Link onClick={close} href="/links">链接</Link><Link onClick={close} href="/search">搜索</Link><Link onClick={close} href="/rss.xml">RSS</Link></div></nav>}</>;
+  return <><button ref={buttonRef} className={`menu ${open ? "is-open" : ""}`} aria-label={open ? "关闭菜单" : "打开菜单"} aria-expanded={open} aria-controls="mobile-nav" onClick={toggle}><span className="menu-icon menu-icon-open"><MenuIcon /></span><span className="menu-icon menu-icon-close"><CloseIcon /></span></button>{mounted && <nav ref={menuRef} id="mobile-nav" className={`mobile-menu ${open ? "open" : "closing"}`} aria-label="移动端导航" onClick={(event) => { if (event.target === event.currentTarget) close(); }}><div className="mobile-menu-inner"><Link ref={firstLinkRef} onClick={close} href="/posts">文章</Link><Link onClick={close} href="/about">关于</Link><Link onClick={close} href="/links">链接</Link><button type="button" onClick={openSearch}>搜索</button><Link onClick={close} href="/rss.xml">RSS</Link></div></nav>}</>;
 }
