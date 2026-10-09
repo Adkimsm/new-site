@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon, MenuIcon } from "@/components/icons";
+import { animateElement, runExit } from "@/lib/motion";
 
 export function MenuButton() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const previousBodyStyles = useRef({ overflow: "", paddingRight: "" });
 
@@ -51,6 +53,23 @@ export function MenuButton() {
     };
   }, [open]);
 
+  // 进场：命令式播放，调用即执行，不依赖 class 触发过渡
+  useEffect(() => {
+    if (!mounted || !open) return;
+    animateElement(menuRef.current, [{ opacity: 0 }, { opacity: 1 }]);
+    animateElement(innerRef.current, [{ transform: "translateY(-18px)" }, { transform: "translateY(0)" }]);
+  }, [mounted, open]);
+
+  // 退场：动画全部结束后再卸载
+  useEffect(() => {
+    if (open || !mounted) return;
+    const animations = [
+      animateElement(menuRef.current, [{ opacity: 1 }, { opacity: 0 }]),
+      animateElement(innerRef.current, [{ transform: "translateY(0)" }, { transform: "translateY(-18px)" }])
+    ].filter((animation): animation is Animation => animation !== null);
+    return runExit(animations, () => setMounted(false));
+  }, [open, mounted]);
+
   const close = () => setOpen(false);
   const toggle = () => {
     if (open) close();
@@ -59,10 +78,5 @@ export function MenuButton() {
       requestAnimationFrame(() => setOpen(true));
     }
   };
-  useEffect(() => {
-    if (open || !mounted) return;
-    const timer = window.setTimeout(() => setMounted(false), 240);
-    return () => window.clearTimeout(timer);
-  }, [open, mounted]);
-  return <><button ref={buttonRef} className={`menu ${open ? "is-open" : ""}`} aria-label={open ? "关闭菜单" : "打开菜单"} aria-expanded={open} aria-controls="mobile-nav" onClick={toggle}><span className="menu-icon menu-icon-open"><MenuIcon /></span><span className="menu-icon menu-icon-close"><CloseIcon /></span></button>{mounted && <nav ref={menuRef} id="mobile-nav" className={`mobile-menu ${open ? "open" : "closing"}`} aria-label="移动端导航" onClick={(event) => { if (event.target === event.currentTarget) close(); }}><div className="mobile-menu-inner"><Link ref={firstLinkRef} onClick={close} href="/posts">文章</Link><Link onClick={close} href="/about">关于</Link><Link onClick={close} href="/links">链接</Link><Link onClick={close} href="/rss.xml">RSS</Link></div></nav>}</>;
+  return <><button ref={buttonRef} className={`menu ${open ? "is-open" : ""}`} aria-label={open ? "关闭菜单" : "打开菜单"} aria-expanded={open} aria-controls="mobile-nav" onClick={toggle}><span className="menu-icon menu-icon-open"><MenuIcon /></span><span className="menu-icon menu-icon-close"><CloseIcon /></span></button>{mounted && <nav ref={menuRef} id="mobile-nav" className={`mobile-menu ${open ? "open" : ""}`} aria-label="移动端导航" onClick={(event) => { if (event.target === event.currentTarget) close(); }}><div ref={innerRef} className="mobile-menu-inner"><Link ref={firstLinkRef} onClick={close} href="/posts">文章</Link><Link onClick={close} href="/about">关于</Link><Link onClick={close} href="/links">链接</Link><Link onClick={close} href="/rss.xml">RSS</Link></div></nav>}</>;
 }

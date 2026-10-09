@@ -100,19 +100,12 @@ a.pill:hover {
 }
 
 /* ---- 搜索浮层（全站可用，不再有独立页面） ------------------------------
-   全屏纸面 + 轻模糊，居中大号衬线输入框与结果列，骨架参考 yunyoujun.cn。
-   浮层条件挂载：进场用 keyframes（挂载即播放，不依赖 rAF 时序），退场用
-   transition（元素已绘制过，必然生效）。不用常驻大图层反复显隐，避免掉帧。 */
-@keyframes search-overlay-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes search-panel-in {
-  from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
+   全屏纸面，居中大号衬线输入框与结果列，骨架参考 yunyoujun.cn。
+   浮层条件挂载，开合动画由 Web Animations API 命令式驱动（见 SearchDialog /
+   lib/motion），CSS 只声明基础态、不用 transition，避免「class 变化不触发
+   过渡」的时序问题。
+   这里刻意不用 backdrop-filter：实测只要浮层（或其子层）带背景模糊，同层的
+   opacity 动画就会被合成器拖成 pending，导致开合没有过渡；改用不透明纸面。 */
 .search-overlay {
   position: fixed;
   inset: 0;
@@ -121,27 +114,15 @@ a.pill:hover {
   flex-direction: column;
   align-items: center;
   padding: clamp(3rem, 10vh, 6rem) var(--gutter) var(--space-5);
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  opacity: 1;
-  animation: search-overlay-in var(--duration-normal) var(--ease-standard) backwards;
-  transition: opacity var(--duration-normal) var(--ease-standard);
-}
-
-@supports (backdrop-filter: blur(1px)) {
-  .search-overlay { backdrop-filter: blur(12px); }
-}
-
-/* 关闭走 transition（元素已绘制过，必然生效）；animation: none 让快速关闭也能
-   立即从进场动画切入过渡。注意进场动画必须用 backwards 而非 both —— both 会把
-   opacity 钉在 1，覆盖这里的 opacity: 0，导致关闭没有过渡。 */
-.search-overlay.closing {
+  /* 略带一点底色，让全屏浮层的淡入淡出可感知（纯纸面与页面同色会看不出来） */
+  background: color-mix(in srgb, var(--paper) 94%, var(--ink));
   opacity: 0;
-  animation: none;
 }
 
 /* 右上角关闭按钮 */
 .search-dismiss {
   position: absolute;
+  z-index: 1;
   top: var(--space-5);
   right: var(--space-5);
   display: inline-flex;
@@ -161,23 +142,17 @@ a.pill:hover {
 .search-dismiss:hover { background: var(--soft); color: var(--ink); }
 .search-dismiss svg { display: block; }
 
-/* 居中内容列：输入框 + 状态 + 结果 + 提示 */
+/* 居中内容列：输入框 + 状态 + 结果 + 提示；基础态隐藏，进场由 JS 动画 */
 .search-panel {
+  position: relative;
+  z-index: 1;
   width: min(100%, 44rem);
   max-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  opacity: 1;
-  transform: translateY(0);
-  animation: search-panel-in var(--duration-normal) var(--ease-standard) backwards;
-  transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard);
-}
-
-.search-overlay.closing .search-panel {
   opacity: 0;
-  transform: translateY(-10px);
-  animation: none;
+  transform: translateY(-24px);
 }
 
 /* 大号衬线输入框：居中文字、透明底、细边框 */

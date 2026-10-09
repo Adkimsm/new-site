@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon } from "@/components/icons";
+import { animateElement, runExit } from "@/lib/motion";
 import { getSnippet, highlight, searchPosts, type SearchPost } from "@/lib/search";
 
 type Status = "idle" | "loading" | "ready" | "error";
-
-/** 退场动画时长，与 CSS 的 --duration-normal 保持一致，动画结束后再卸载。 */
-const CLOSE_DELAY = 240;
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [query, setQuery] = useState("");
@@ -17,9 +15,9 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const [status, setStatus] = useState<Status>("idle");
   const [active, setActive] = useState(-1);
   const [mounted, setMounted] = useState(false);
-  const [closing, setClosing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
   const loadedRef = useRef(false);
   const router = useRouter();
@@ -55,22 +53,26 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       });
   }, [open]);
 
-  // 条件挂载：打开时挂载（CSS 进场动画随之播放），关闭时先加 closing 类播放
-  // 退场动画、动画结束后再卸载。用 keyframes 而非「挂载后切类」，既避免常驻
-  // 大图层反复显隐造成的掉帧，也避免 React 合并更新导致首次打开没有过渡。
+  // 打开：挂载浮层
   useEffect(() => {
-    if (open) {
-      setClosing(false);
-      setMounted(true);
-      return;
-    }
-    if (!mounted) return;
-    setClosing(true);
-    const timer = window.setTimeout(() => {
-      setMounted(false);
-      setClosing(false);
-    }, CLOSE_DELAY);
-    return () => window.clearTimeout(timer);
+    if (open) setMounted(true);
+  }, [open]);
+
+  // 进场：命令式播放，调用即执行，不依赖 class 触发过渡
+  useEffect(() => {
+    if (!mounted || !open) return;
+    animateElement(overlayRef.current, [{ opacity: 0 }, { opacity: 1 }]);
+    animateElement(panelRef.current, [{ opacity: 0, transform: "translateY(-24px)" }, { opacity: 1, transform: "translateY(0)" }]);
+  }, [mounted, open]);
+
+  // 退场：动画全部结束后再卸载，时长由动画本身决定（不用 setTimeout 猜）
+  useEffect(() => {
+    if (open || !mounted) return;
+    const animations = [
+      animateElement(overlayRef.current, [{ opacity: 1 }, { opacity: 0 }]),
+      animateElement(panelRef.current, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-24px)" }])
+    ].filter((animation): animation is Animation => animation !== null);
+    return runExit(animations, () => setMounted(false));
   }, [open, mounted]);
 
   // 打开期间：聚焦输入框、锁定滚动、键盘操作、焦点陷阱、关闭后归还焦点
@@ -146,7 +148,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const statusText = status === "loading" ? "正在加载搜索索引…" : hasQuery ? `找到 ${results.length} 篇文章` : "";
 
   return (
-    <div className={`search-overlay ${closing ? "closing" : ""}`} onMouseDown={(event) => { if (!panelRef.current?.contains(event.target as Node)) onClose(); }}>
+    <div ref={overlayRef} className="search-overlay" onMouseDown={(event) => { if (!panelRef.current?.contains(event.target as Node)) onClose(); }}>
       <button type="button" className="search-dismiss" aria-label="关闭搜索" title="关闭搜索" onClick={onClose}><CloseIcon size={20} /></button>
 
       <div ref={panelRef} className="search-panel search" role="dialog" aria-modal="true" aria-labelledby="search-title">

@@ -386,7 +386,8 @@ footer {
   .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-5); }
   .footer-groups { gap: var(--space-5) var(--space-7); }
 
-  /* 移动菜单：全屏纸面 */
+  /* 移动菜单：全屏纸面。开合动画由 JS（Web Animations API）驱动，
+     CSS 只声明基础态：默认透明、不接收指针，open 时才可交互。 */
   .mobile-menu {
     position: fixed;
     z-index: 20;
@@ -399,17 +400,10 @@ footer {
     color: var(--ink);
     padding: calc(var(--nav-height) + env(safe-area-inset-top)) var(--gutter) calc(var(--space-6) + env(safe-area-inset-bottom));
     opacity: 0;
-    visibility: hidden;
     pointer-events: none;
-    transition: opacity var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
   }
 
-  .mobile-menu.open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transition-delay: 0s;
-  }
+  .mobile-menu.open { pointer-events: auto; }
 
   .mobile-menu-inner {
     width: 100%;
@@ -420,11 +414,9 @@ footer {
     gap: var(--space-5);
     font-size: clamp(2rem, 9vw, 4rem);
     line-height: var(--leading-tight);
-    transform: translateY(-10px);
-    transition: transform var(--duration-normal) var(--ease-standard);
+    transform: translateY(-18px);
   }
 
-  .mobile-menu.open .mobile-menu-inner { transform: translateY(0); }
   .mobile-menu-inner a { text-decoration: none; }
   .mobile-menu-inner a:hover { text-decoration: underline; text-underline-offset: 8px; }
 }
