@@ -11,6 +11,7 @@
 
 .page {
   max-width: var(--measure-page);
+  margin-inline: auto;
   padding: var(--page-pad-top) 0 var(--space-11);
   animation: page-enter var(--duration-slow) var(--ease-standard) both;
 }
