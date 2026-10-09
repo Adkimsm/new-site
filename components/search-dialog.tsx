@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CloseIcon, SearchIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 import { getSnippet, highlight, searchPosts, type SearchPost } from "@/lib/search";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
-/** 打开动画时长，与 CSS 的 --duration-normal 保持一致，用于卸载前等待淡出。 */
+/** 关闭动画时长，与 CSS 的 --duration-normal 保持一致，用于卸载前等待淡出。 */
 const CLOSE_DELAY = 240;
 
 export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -15,17 +16,36 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const [posts, setPosts] = useState<SearchPost[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [active, setActive] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
   const loadedRef = useRef(false);
+  const router = useRouter();
 
-  // 关闭后延迟卸载，保留淡出过渡
+  const results = searchPosts(posts, query);
+  const hasQuery = query.trim().length > 0;
+
+  // 供 window 级键盘事件读取最新值，避免把 results/active 放进 effect 依赖
+  const resultsRef = useRef(results);
+  resultsRef.current = results;
+  const activeRef = useRef(active);
+  activeRef.current = active;
+
+  // 打开：先挂载，下一帧再加 visible，确保首次打开也有淡入 + 上浮过渡
   useEffect(() => {
-    if (open) {
-      setMounted(true);
-      return;
-    }
+    if (!open) return;
+    setMounted(true);
+    const raf = requestAnimationFrame(() => setVisible(true));
+    return () => window.cancelAnimationFrame(raf);
+  }, [open]);
+
+  // 关闭：先退出，动画结束后再卸载
+  useEffect(() => {
+    if (open) return;
+    setVisible(false);
+    setActive(-1);
     if (!mounted) return;
     const timer = window.setTimeout(() => setMounted(false), CLOSE_DELAY);
     return () => window.clearTimeout(timer);
@@ -53,16 +73,40 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       });
   }, [open]);
 
-  // 打开期间：聚焦输入框、锁定滚动、Escape 关闭、Tab 焦点陷阱、关闭后归还焦点
+  // 打开期间：聚焦输入框、锁定滚动、键盘操作、焦点陷阱、关闭后归还焦点
   useEffect(() => {
     if (!open) return;
     restoreRef.current = document.activeElement as HTMLElement | null;
     const raf = requestAnimationFrame(() => inputRef.current?.focus());
 
     const onKey = (event: KeyboardEvent) => {
+      // 中文输入法组合期间不拦截按键（Esc 先交给输入法取消候选）
+      if (event.isComposing) return;
+
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
+        return;
+      }
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setActive((index) => {
+          const total = resultsRef.current.length;
+          return total ? Math.min(index + 1, total - 1) : -1;
+        });
+        return;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setActive((index) => Math.max(index - 1, 0));
+        return;
+      }
+      if (event.key === "Enter") {
+        const target = resultsRef.current[activeRef.current];
+        if (!target) return;
+        event.preventDefault();
+        onClose();
+        router.push(`/posts/${target.slug}`);
         return;
       }
       if (event.key !== "Tab" || !panelRef.current) return;
@@ -88,19 +132,26 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       document.body.style.overflow = previousOverflow;
       restoreRef.current?.focus();
     };
-  }, [open, onClose]);
+  }, [open, onClose, router]);
+
+  // 选中项滚动到可视区域
+  useEffect(() => {
+    if (active < 0) return;
+    document.getElementById(`search-result-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [active]);
 
   if (!mounted) return null;
 
-  const results = searchPosts(posts, query);
-  const hasQuery = query.trim().length > 0;
-  const statusText = status === "loading" ? "正在加载搜索索引…" : status === "error" ? "搜索索引加载失败，请稍后重试。" : hasQuery ? `找到 ${results.length} 篇文章` : "";
+  const statusText = status === "loading" ? "正在加载搜索索引…" : hasQuery ? `找到 ${results.length} 篇文章` : "";
 
   return (
-    <div className={`search-overlay ${open ? "open" : "closing"}`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-      <div ref={panelRef} className="search-panel search" role="dialog" aria-modal="true" aria-label="站内搜索">
+    <div className={`search-overlay ${visible ? "open" : "closing"}`} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <button type="button" className="search-dismiss" aria-label="关闭搜索" title="关闭搜索" onClick={onClose}><CloseIcon size={20} /></button>
+
+      <div ref={panelRef} className="search-panel search" role="dialog" aria-modal="true" aria-labelledby="search-title">
+        <h2 id="search-title" className="sr-only">站内搜索</h2>
+
         <div className="search-field">
-          <SearchIcon />
           <label className="sr-only" htmlFor="site-search">搜索文章</label>
           <input
             ref={inputRef}
@@ -108,32 +159,45 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
             className="field search-input"
             type="search"
             autoComplete="off"
-            placeholder="输入关键词…"
+            placeholder="输入关键词搜索…"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => { setQuery(event.target.value); setActive(-1); }}
+            role="combobox"
+            aria-expanded={hasQuery}
+            aria-controls="search-results"
+            aria-activedescendant={active >= 0 ? `search-result-${active}` : undefined}
+            aria-autocomplete="list"
           />
-          <button type="button" className="search-close" aria-label="关闭搜索" title="关闭搜索" onClick={onClose}><CloseIcon size={18} /></button>
         </div>
 
         {/* aria-live 常驻，只在有关键词时播报结果数 */}
         <p className="meta search-status" aria-live="polite">{statusText}</p>
 
-        {status === "error" && <div className="empty-state"><p>搜索索引加载失败，请稍后重试。</p></div>}
+        {status === "error" && <div className="empty-state" role="alert"><p>搜索索引加载失败，请稍后重试。</p></div>}
 
-        {status !== "error" && hasQuery && <ul className="post-list search-results">
-          {results.map((post) => <li className="post-item" key={post.slug}>
-            <div className="post-date">
-              <time dateTime={post.date}>{post.date}</time>
-              <span className="post-length">{post.wordCount} 字</span>
-            </div>
-            <div className="post-content">
-              <Link className="post-title" href={`/posts/${post.slug}`} onClick={onClose} dangerouslySetInnerHTML={{ __html: highlight(post.title, query) }} />
-              <p className="post-description" dangerouslySetInnerHTML={{ __html: highlight(getSnippet(post, query), query) }} />
-            </div>
+        {status !== "error" && hasQuery && <ul id="search-results" className="search-results" role="listbox" aria-label="搜索结果">
+          {results.map((post, index) => <li
+            id={`search-result-${index}`}
+            key={post.slug}
+            role="option"
+            aria-selected={index === active}
+            className={`search-result ${index === active ? "is-selected" : ""}`}
+            onMouseEnter={() => setActive(index)}
+          >
+            <Link className="search-result-title" href={`/posts/${post.slug}`} onClick={onClose} dangerouslySetInnerHTML={{ __html: highlight(post.title, query) }} />
+            <p className="search-result-excerpt" dangerouslySetInnerHTML={{ __html: highlight(getSnippet(post, query), query) }} />
+            <p className="search-result-meta"><time dateTime={post.date}>{post.date}</time> · {post.wordCount} 字</p>
           </li>)}
         </ul>}
 
         {status === "ready" && hasQuery && !results.length && <div className="empty-state"><p>没有找到相关文章，请换一个关键词。</p></div>}
+
+        <div className="search-footer">
+          <span><kbd>/</kbd> 打开</span>
+          <span><kbd>Esc</kbd> 关闭</span>
+          <span><kbd>↑</kbd> <kbd>↓</kbd> 选择</span>
+          <span><kbd>Enter</kbd> 打开</span>
+        </div>
       </div>
     </div>
   );
