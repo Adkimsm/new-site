@@ -73,8 +73,6 @@
   --nav-height: 72px;
   --measure-prose: 700px;
   --measure-page: 720px;
-  --toc-width: 190px;
-  --toc-gap: 2.5rem;
   --date-col: 6.5rem;
 
   /* 页首留白：由导航高度推导，改导航高度只需改 --nav-height */

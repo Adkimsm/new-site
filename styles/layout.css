@@ -271,7 +271,7 @@
 
 .hero-links a:hover { color: var(--ink); text-decoration: none; }
 
-.reading-tools svg { display: block; }
+.reading-fab svg { display: block; }
 
 /* ---- 页脚 -------------------------------------------------------------- */
 footer {

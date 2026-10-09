@@ -2,16 +2,17 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ArrowUpIcon, CheckIcon, CopyIcon, ListIcon } from "@/components/icons";
+import { ArrowUpIcon, ListIcon } from "@/components/icons";
 
 type Heading = { id: string; text: string };
 
-/** 进度环几何：半径 8 的圆周长，用于把百分比换算为 stroke-dashoffset。 */
-const PROGRESS_RADIUS = 8;
+/** 进度环几何：半径 22 的圆周长，用于把百分比换算为 stroke-dashoffset。 */
+const PROGRESS_RADIUS = 22;
 const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
 
 export function ReadingTools({ html }: { html: string }) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const toolsRef = useRef<HTMLDivElement>(null);
   /**
    * 必须 memo 住 dangerouslySetInnerHTML 的对象：
    * React 按对象身份判断是否需要重写 innerHTML，每次渲染新建一个对象会让它
@@ -23,7 +24,6 @@ export function ReadingTools({ html }: { html: string }) {
   const [active, setActive] = useState("");
   const [progress, setProgress] = useState(0);
   const [tocOpen, setTocOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [lightbox, setLightbox] = useState("");
   const [lightboxMounted, setLightboxMounted] = useState(false);
   useEffect(() => {
@@ -73,24 +73,35 @@ export function ReadingTools({ html }: { html: string }) {
   }, []);
   useEffect(() => { if (!lightbox) return; const previous = document.activeElement as HTMLElement | null; const close = (event: KeyboardEvent) => { if (event.key === "Escape") setLightbox(""); }; window.addEventListener("keydown", close); document.body.style.overflow = "hidden"; return () => { window.removeEventListener("keydown", close); document.body.style.overflow = ""; previous?.focus(); }; }, [lightbox]);
   useEffect(() => { if (lightbox || !lightboxMounted) return; const timer = window.setTimeout(() => setLightboxMounted(false), 240); return () => window.clearTimeout(timer); }, [lightbox, lightboxMounted]);
-  const copyLink = async () => { await navigator.clipboard?.writeText(window.location.href); setCopied(true); window.setTimeout(() => setCopied(false), 1600); };
+  // 目录浮层：Esc 或点击浮层外部关闭
+  useEffect(() => {
+    if (!tocOpen) return;
+    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") setTocOpen(false); };
+    const onPointer = (event: MouseEvent) => { if (!toolsRef.current?.contains(event.target as Node)) setTocOpen(false); };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointer);
+    return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onPointer); };
+  }, [tocOpen]);
   const closeLightbox = () => setLightbox("");
+  const backToTop = () => { setTocOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return <>
     <div className="post-body">
       <div ref={contentRef} id="article-content" className="prose" dangerouslySetInnerHTML={content} />
-      {headings.length > 0 && <aside id="article-toc" className={`toc ${tocOpen ? "toc-open" : ""}`} aria-label="文章目录"><strong>目录</strong>{headings.map((heading) => <a className={active === heading.id ? "active" : ""} href={`#${heading.id}`} key={heading.id} onClick={() => setTocOpen(false)}>{heading.text}</a>)}</aside>}
     </div>
-    <div className="reading-tools">
-      <button className="tool-progress" aria-label={`阅读进度 ${Math.round(progress)}%`} title={`阅读进度 ${Math.round(progress)}%`}>
-        <svg aria-hidden="true" focusable="false" width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <circle className="tool-progress__track" cx="10" cy="10" r={PROGRESS_RADIUS} strokeWidth="2" />
-          <circle className="tool-progress__value" cx="10" cy="10" r={PROGRESS_RADIUS} strokeWidth="2" strokeLinecap="round" strokeDasharray={PROGRESS_CIRCUMFERENCE} strokeDashoffset={PROGRESS_CIRCUMFERENCE * (1 - progress / 100)} transform="rotate(-90 10 10)" />
+    <div className="reading-tools" ref={toolsRef}>
+      <aside id="article-toc" className={`toc ${tocOpen ? "toc-open" : ""}`} aria-label="文章目录">
+        <strong>目录</strong>
+        <button type="button" className="toc-top" onClick={backToTop}><ArrowUpIcon size={16} />回到顶部</button>
+        {headings.map((heading) => <a className={active === heading.id ? "active" : ""} href={`#${heading.id}`} key={heading.id} onClick={() => setTocOpen(false)}>{heading.text}</a>)}
+      </aside>
+      <button className="reading-fab" type="button" onClick={() => setTocOpen(!tocOpen)} aria-expanded={tocOpen} aria-controls="article-toc" aria-label={`文章目录 · 阅读进度 ${Math.round(progress)}%`} title="文章目录">
+        <svg className="reading-fab__ring" aria-hidden="true" focusable="false" viewBox="0 0 48 48" fill="none">
+          <circle className="reading-fab__track" cx="24" cy="24" r={PROGRESS_RADIUS} strokeWidth="2" />
+          <circle className="reading-fab__value" cx="24" cy="24" r={PROGRESS_RADIUS} strokeWidth="2" strokeLinecap="round" strokeDasharray={PROGRESS_CIRCUMFERENCE} strokeDashoffset={PROGRESS_CIRCUMFERENCE * (1 - progress / 100)} transform="rotate(-90 24 24)" />
         </svg>
+        <ListIcon />
       </button>
-      {headings.length > 0 && <button className="toc-toggle" onClick={() => setTocOpen(!tocOpen)} aria-expanded={tocOpen} aria-controls="article-toc" aria-label="打开文章目录" title="文章目录"><ListIcon /></button>}
-      <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} aria-label="返回顶部" title="返回顶部"><ArrowUpIcon /></button>
-      <button onClick={copyLink} aria-label={copied ? "链接已复制" : "复制文章链接"} title={copied ? "链接已复制" : "复制文章链接"}>{copied ? <CheckIcon /> : <CopyIcon />}</button>
     </div>
     {lightboxMounted && <button autoFocus className={`lightbox ${lightbox ? "open" : "closing"}`} aria-label="关闭图片预览" onClick={closeLightbox}><Image src={lightbox} alt="放大预览" width={1200} height={800} unoptimized /></button>}
   </>;

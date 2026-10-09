@@ -1,46 +1,58 @@
 /* ==========================================================================
-   阅读层 — 文章页版式、目录（网格常驻轨）、阅读工具、授权卡、灯箱
+   阅读层 — 文章页版式、目录浮层、阅读按钮、授权卡、灯箱
    ========================================================================== */
 
 /* ---- 文章页外壳 --------------------------------------------------------
-   版心 = 正文列 + 目录槽；除正文网格外的子元素都收到正文列宽度，
-   这样标题、授权卡、标签、上下篇与正文严格对齐。 */
+   目录已改为右下角浮层，不再占用版心右侧的常驻轨道；
+   版心即正文列宽度，标题、授权卡、标签、上下篇与正文严格对齐。 */
 .post-page {
-  max-width: calc(var(--measure-prose) + var(--toc-gap) + var(--toc-width));
+  max-width: var(--measure-prose);
   animation-name: post-page-enter;
 }
-
-.post-page > :not(.post-body) { max-width: var(--measure-prose); }
 
 .post-header { margin-bottom: var(--space-6); }
 .post-header .eyebrow { margin-bottom: var(--space-3); }
 .post-header h1 { margin-bottom: var(--space-4); }
 .post-header .meta { margin-bottom: 0; }
 
-/* ---- 正文 + 目录的两列网格 --------------------------------------------- */
-.post-body {
-  display: grid;
-  grid-template-columns: minmax(0, var(--measure-prose)) var(--toc-width);
-  gap: var(--toc-gap);
-  align-items: start;
-  margin-top: var(--space-8);
-}
+/* ---- 正文 -------------------------------------------------------------- */
+.post-body { margin-top: var(--space-8); }
 
-/* ---- 目录：常驻粘性轨（宽屏） ------------------------------------------
-   旧实现用 left: calc(50% + 400px) 硬编码坐标：一旦正文宽度变化就会压住正文。
-   这里改成网格列 + sticky，位置由版心推导。 */
+/* ---- 目录：右下角浮层（由阅读按钮开合） --------------------------------
+   全尺寸统一为浮层，锚定在阅读按钮上方；不再有宽屏常驻粘性轨。 */
 .toc {
-  position: sticky;
-  top: calc(var(--nav-height) + var(--space-6));
+  position: fixed;
+  z-index: 15;
+  right: var(--space-6);
+  bottom: calc(var(--space-6) + 3rem + var(--space-3));
+  width: min(18rem, calc(100vw - 2 * var(--gutter)));
+  max-height: min(60vh, 26rem);
+  overflow: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  max-height: calc(100svh - var(--nav-height) - var(--space-9));
-  overflow: auto;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
   color: var(--muted);
   font-family: var(--font-sans);
   font-size: var(--text-xs);
   line-height: var(--leading-snug);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
+}
+
+.toc.toc-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
 }
 
 .toc strong {
@@ -51,26 +63,37 @@
   text-transform: uppercase;
 }
 
-.toc a {
+.toc a,
+.toc-top {
   padding-left: var(--space-3);
   border-left: 1px solid var(--line-soft);
+  color: inherit;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
   transition: color var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
 }
 
 .toc a:hover,
-.toc a.active {
+.toc a.active,
+.toc-top:hover {
   color: var(--ink);
   border-color: var(--ink);
   transform: translateX(2px);
   text-decoration: none;
 }
 
-/* 宽屏目录常驻，浮层开关按钮多余。
-   必须写成 .reading-tools .toc-toggle：单类选择器会被 .reading-tools button
-   的 display:inline-flex 压过（优先级 0,1,1 > 0,1,0）。 */
-@media (min-width: 1101px) {
-  .reading-tools .toc-toggle { display: none; }
+/* 「回到顶部」：浮层首项，用一条细线与下方标题分隔 */
+.toc-top {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-2);
+  border: 0;
+  border-bottom: 1px solid var(--line-soft);
+  background: transparent;
+  cursor: pointer;
 }
 
 /* ---- 封面 -------------------------------------------------------------- */
@@ -155,43 +178,36 @@
   text-transform: uppercase;
 }
 
-/* ---- 右下角阅读工具 ---------------------------------------------------- */
-.reading-tools {
+/* ---- 右下角阅读按钮：圆环=进度，点击开合目录 --------------------------- */
+.reading-fab {
   position: fixed;
   right: var(--space-6);
   bottom: var(--space-6);
   z-index: 5;
-  display: flex;
-  gap: var(--space-1);
-  padding: var(--space-1);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  backdrop-filter: blur(10px);
-}
-
-.reading-tools button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 2.4rem;
-  min-height: 2.4rem;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--ink);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  backdrop-filter: blur(10px);
+  color: var(--muted);
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard), transform var(--duration-fast) var(--ease-standard);
+  transition: color var(--duration-fast) var(--ease-standard);
 }
 
-.reading-tools button:hover { background: var(--soft); transform: translateY(-1px); }
-.reading-tools button:active { transform: translateY(0); }
+.reading-fab[aria-expanded="true"] { color: var(--ink); }
 
-/* 阅读进度环 */
-.tool-progress svg { display: block; }
-.tool-progress__track { stroke: var(--line); }
-.tool-progress__value { stroke: var(--ink); }
+@media (hover: hover) {
+  .reading-fab:hover { color: var(--ink); }
+}
+
+/* 进度环铺满按钮；目录图标由 grid 居中 */
+.reading-fab__ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.reading-fab__track { stroke: var(--line); }
+.reading-fab__value { stroke: var(--ink); }
 
 /* ---- 图片灯箱 ---------------------------------------------------------- */
 .lightbox {
@@ -244,49 +260,10 @@
   letter-spacing: .04em;
 }
 
-/* ---- 中屏：目录改为浮层 ------------------------------------------------ */
-@media (max-width: 1100px) {
-  .post-page { max-width: var(--measure-page); }
-
-  .post-body {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0;
-  }
-
-  .toc {
-    position: fixed;
-    z-index: 15;
-    left: var(--gutter);
-    right: var(--gutter);
-    bottom: 5.5rem;
-    top: auto;
-    width: auto;
-    max-height: none;
-    padding: var(--space-4);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
-    background: var(--surface);
-    box-shadow: var(--shadow-3);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform: translateY(8px);
-    transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
-  }
-
-  .toc.toc-open {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-    transition-delay: 0s;
-  }
-}
-
 /* ---- 移动端 ------------------------------------------------------------ */
 @media (max-width: 700px) {
-  .reading-tools { right: var(--space-4); bottom: var(--space-4); }
-  .toc { bottom: 5rem; }
+  .reading-fab { right: var(--space-4); bottom: var(--space-4); }
+  .toc { right: var(--space-4); bottom: calc(var(--space-4) + 3rem + var(--space-3)); }
 
   .post-nav {
     grid-template-columns: minmax(0, 1fr);
@@ -304,16 +281,8 @@
   .license-card { padding: var(--space-4); }
 }
 
-/* ---- 超小屏：工具条横铺，保证触控目标 ≥44px --------------------------- */
+/* ---- 超小屏：阅读按钮贴安全区 ------------------------------------------ */
 @media (max-width: 420px) {
-  .reading-tools {
-    left: var(--gutter);
-    right: var(--gutter);
-    bottom: calc(var(--space-4) + env(safe-area-inset-bottom));
-    justify-content: space-between;
-  }
-
-  .reading-tools button { flex: 1 1 auto; min-height: 44px; }
-
-  .toc { bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+  .reading-fab { bottom: calc(var(--space-4) + env(safe-area-inset-bottom)); }
+  .toc { bottom: calc(var(--space-4) + 3rem + var(--space-3) + env(safe-area-inset-bottom)); }
 }
