@@ -359,14 +359,13 @@ footer {
 /* ---- 移动端 ------------------------------------------------------------ */
 @media (max-width: 700px) {
   .desktop-links { display: none; }
-  /* 搜索改由全屏菜单进入，导航右侧不再放搜索图标 */
-  .search-trigger { display: none; }
   /* 菜单按钮需浮在全屏菜单遮罩（z-index: 20）之上，否则关闭按钮会被遮住 */
   .menu { display: block; z-index: 30; }
 
   /* 移动端触控目标放大到 44px（导航右侧控件与菜单按钮） */
   .menu,
-  .theme-toggle {
+  .theme-toggle,
+  .search-trigger {
     width: 44px;
     height: 44px;
     flex: 0 0 44px;
@@ -426,18 +425,8 @@ footer {
   }
 
   .mobile-menu.open .mobile-menu-inner { transform: translateY(0); }
-  .mobile-menu-inner a,
-  .mobile-menu-inner button { text-decoration: none; }
-  .mobile-menu-inner a:hover,
-  .mobile-menu-inner button:hover { text-decoration: underline; text-underline-offset: 8px; }
-
-  /* 菜单内的「搜索」是按钮而非链接，需去掉默认外观 */
-  .mobile-menu-inner button {
-    padding: 0;
-    border: 0;
-    background: none;
-    cursor: pointer;
-  }
+  .mobile-menu-inner a { text-decoration: none; }
+  .mobile-menu-inner a:hover { text-decoration: underline; text-underline-offset: 8px; }
 }
 
 /* ---- 超小屏 ------------------------------------------------------------ */
