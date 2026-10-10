@@ -6,7 +6,10 @@ import { siteConfig } from "@/lib/site-config";
 import { themeInitScript } from "@/lib/theme";
 import "./globals.css";
 
-export const metadata: Metadata = { metadataBase: new URL(siteConfig.url), title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` }, description: siteConfig.description, alternates: { canonical: siteConfig.url, types: { "application/rss+xml": `${siteConfig.url}/rss.xml` } }, openGraph: { title: siteConfig.name, description: siteConfig.description, url: siteConfig.url, type: "website", images: [{ url: `${siteConfig.url}/images/avatar.jpg`, alt: "Adkinsm" }] }, twitter: { card: "summary_large_image", title: siteConfig.name, description: siteConfig.description, images: [`${siteConfig.url}/images/avatar.jpg`] } };
+// 只保留全局默认值：标题模板、站点描述与 metadataBase。
+// canonical、RSS 链接与 OG/Twitter 卡片由各页面的 buildMetadata() 提供，
+// 因为页面级 metadata 会整体替换这些键而不是深合并。
+export const metadata: Metadata = { metadataBase: new URL(siteConfig.url), title: { default: siteConfig.name, template: `%s · ${siteConfig.name}` }, description: siteConfig.description };
 
 type FooterLink = { href: string; label: string; external?: boolean };
 

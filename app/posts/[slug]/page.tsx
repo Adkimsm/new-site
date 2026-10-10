@@ -2,12 +2,27 @@ import { notFound } from "next/navigation";
 import { getPosts } from "@/lib/content/posts";
 import { markdownToHtml } from "@/lib/markdown";
 import { siteConfig } from "@/lib/site-config";
+import { buildMetadata } from "@/lib/metadata";
 import { ReadingTools } from "@/components/reading-tools";
 import Image from "next/image";
 
 export async function generateStaticParams() { return getPosts().map(({ slug }) => ({ slug })); }
 
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) { const { slug } = await params; const post = getPosts().find((item) => item.slug === slug); return post ? { title: post.title, description: post.description, alternates: { canonical: post.canonical || `${siteConfig.url}/posts/${post.slug}` }, openGraph: { title: post.title, description: post.description, type: "article", publishedTime: post.date, modifiedTime: post.updated ?? post.date } } : {}; }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const post = getPosts().find((item) => item.slug === slug);
+  if (!post) return {};
+  return buildMetadata({
+    title: post.title,
+    description: post.description,
+    path: `/posts/${post.slug}`,
+    canonical: post.canonical,
+    image: post.cover,
+    type: "article",
+    publishedTime: post.date,
+    modifiedTime: post.updated ?? post.date
+  });
+}
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

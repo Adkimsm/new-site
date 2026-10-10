@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getPosts, groupPosts } from "@/lib/content/posts";
-export const metadata = { title: "文章" };
+import { buildMetadata } from "@/lib/metadata";
+export const metadata = buildMetadata({ title: "文章", path: "/posts" });
 export default function Posts() {
   const grouped = groupPosts(getPosts());
   return <section className="page">

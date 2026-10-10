@@ -2,6 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { getPosts } from "@/lib/content/posts";
 import { siteConfig } from "@/lib/site-config";
+import { buildMetadata } from "@/lib/metadata";
+
+export const metadata = buildMetadata({ path: "" });
 
 export default function Home() {
   const posts = getPosts().slice(0, 5);
