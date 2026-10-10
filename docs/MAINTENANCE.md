@@ -2,6 +2,10 @@
 
 新增文章前运行 `pnpm test` 和 `pnpm build`。Frontmatter 错误会在构建阶段直接失败。文章文件名发布后尽量保持不变，因为它决定永久 URL。
 
+草稿（`draft: true`）由 `lib/content/posts.ts` 的 `getPosts()` 在生产环境过滤，开发环境保留以便预览。由于 sitemap、RSS、搜索索引与 `generateStaticParams` 都复用 `getPosts()`，草稿会自动从这些输出中消失；要发布时删掉 `draft` 即可。
+
+系列（`series` / `seriesOrder`）只是文章页顶部的一块内嵌列表，没有独立页面。`getSeriesPosts()` 负责排序，单篇系列不渲染。
+
 依赖升级后运行 `pnpm install`、`pnpm typecheck`、`pnpm lint`、`pnpm test` 和 `pnpm build`。字体、搜索索引和图片资源保持本地化，不在页面中引入不必要的第三方请求。
 
 ## 样式
