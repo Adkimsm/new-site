@@ -111,6 +111,38 @@
   font-size: .85em;
 }
 
+/* ---- 行内 HTML --------------------------------------------------------
+   正文允许原始 HTML（见 lib/markdown.ts）。这里给常用的几个标签补上与
+   设计语言一致的排版：details 折叠块、abbr 缩写提示、sub/sup 上下标。
+   mark 的反白样式在 base.css，无需重复。 */
+.prose details {
+  margin: var(--space-6) 0;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.prose details[open] > summary { margin-bottom: var(--space-4); }
+
+.prose summary {
+  color: var(--ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prose abbr[title] {
+  text-decoration: underline dotted var(--line-strong);
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* 上下标会撑高行距，用 line-height: 0 压掉额外行盒。 */
+.prose sub,
+.prose sup {
+  line-height: 0;
+}
+
 /* ---- 代码块 ------------------------------------------------------------ */
 .prose pre {
   overflow: auto;

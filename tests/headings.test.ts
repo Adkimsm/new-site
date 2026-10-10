@@ -23,7 +23,7 @@ describe("heading anchors", () => {
 
   it("does not clobber the footnote section heading from GFM", async () => {
     const html = await markdownToHtml("脚注可以补充说明[^note]。\n\n[^note]: 这是脚注示例。\n");
-    expect(html).toContain('id="user-content-footnote-label"');
+    expect(html).toContain('id="footnote-label"');
   });
 
   it("leaves existing external-link hardening intact", async () => {

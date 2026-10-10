@@ -65,7 +65,12 @@ async function highlightCodeBlocks(html: string) {
 }
 
 export async function markdownToHtml(markdown: string) {
-  const result = await unified().use(remarkParse).use(remarkGfm).use(remarkHtml, { allowDangerousHtml: false }).process(markdown);
+  // remark-html 的净化开关叫 sanitize（默认 true），并没有 allowDangerousHtml 这个选项。
+  // 之前写 allowDangerousHtml: false 是空操作，插件仍按默认跑了 hast-util-sanitize，
+  // 把白名单外的原始 HTML（kbd / sub / sup / mark / abbr / details …）整段剥掉、只留文字，
+  // 还额外给 id 套了一层 user-content- 前缀，导致脚注 href 与 id 对不上、点不动。
+  // 正文都是本地 content/posts/*.md，由作者自己维护，因此关闭净化、原样输出原始 HTML。
+  const result = await unified().use(remarkParse).use(remarkGfm).use(remarkHtml, { sanitize: false }).process(markdown);
   const html = await highlightCodeBlocks(result.toString());
   return addHeadingIds(html).replace(/<a href="(https?:\/\/[^" ]+)"/g, '<a target="_blank" rel="noopener noreferrer" href="$1"');
 }
