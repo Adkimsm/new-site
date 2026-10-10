@@ -111,18 +111,7 @@ a.post-series__title:hover { color: var(--ink); text-decoration: underline; }
   font-size: var(--text-xs);
   line-height: var(--leading-snug);
   opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
   transform: translateY(8px);
-  transition: opacity var(--duration-normal) var(--ease-standard), transform var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
-}
-
-.toc.toc-open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateY(0);
-  transition-delay: 0s;
 }
 
 .toc strong {
@@ -317,34 +306,13 @@ a.post-series__title:hover { color: var(--ink); text-decoration: underline; }
   background: #000b;
   cursor: zoom-out;
   opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity var(--duration-normal) var(--ease-standard), visibility 0s linear var(--duration-normal);
-}
-
-.lightbox.open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transition-delay: 0s;
-}
-
-/* 关闭动画中（lightbox 已清空但仍在挂载）保持隐藏态 */
-.lightbox.closing {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .lightbox img {
   max-width: min(100%, 1100px);
   max-height: 90vh;
   object-fit: contain;
-  transform: scale(.97);
-  transition: transform var(--duration-normal) var(--ease-standard);
 }
-
-.lightbox.open img { transform: scale(1); }
 
 .lightbox::after {
   content: "按 Esc 或点击关闭";

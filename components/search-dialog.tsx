@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon } from "@/components/icons";
-import { animateElement, runExit } from "@/lib/motion";
+import { animateElement } from "@/lib/motion";
+import { usePresence } from "@/lib/presence";
 import { getSnippet, highlight, searchPosts, type SearchPost } from "@/lib/search";
 
 type Status = "idle" | "loading" | "ready" | "error";
@@ -14,7 +15,6 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const [posts, setPosts] = useState<SearchPost[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [active, setActive] = useState(-1);
-  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -53,27 +53,16 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       });
   }, [open]);
 
-  // 打开：挂载浮层
-  useEffect(() => {
-    if (open) setMounted(true);
-  }, [open]);
-
-  // 进场：命令式播放，调用即执行，不依赖 class 触发过渡
-  useEffect(() => {
-    if (!mounted || !open) return;
-    animateElement(overlayRef.current, [{ opacity: 0 }, { opacity: 1 }]);
-    animateElement(panelRef.current, [{ opacity: 0, transform: "translateY(-24px)" }, { opacity: 1, transform: "translateY(0)" }]);
-  }, [mounted, open]);
-
-  // 退场：动画全部结束后再卸载，时长由动画本身决定（不用 setTimeout 猜）
-  useEffect(() => {
-    if (open || !mounted) return;
-    const animations = [
-      animateElement(overlayRef.current, [{ opacity: 1 }, { opacity: 0 }]),
-      animateElement(panelRef.current, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-24px)" }])
-    ].filter((animation): animation is Animation => animation !== null);
-    return runExit(animations, () => setMounted(false));
-  }, [open, mounted]);
+  // 条件挂载 + 开合动画（WAAPI 命令式驱动，退场等 animation.finished 再卸载）
+  const mounted = usePresence(open, (direction) => direction === "in"
+    ? [
+        animateElement(overlayRef.current, [{ opacity: 0 }, { opacity: 1 }]),
+        animateElement(panelRef.current, [{ opacity: 0, transform: "translateY(-24px)" }, { opacity: 1, transform: "translateY(0)" }])
+      ]
+    : [
+        animateElement(overlayRef.current, [{ opacity: 1 }, { opacity: 0 }]),
+        animateElement(panelRef.current, [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-24px)" }])
+      ]);
 
   // 打开期间：聚焦输入框、锁定滚动、键盘操作、焦点陷阱、关闭后归还焦点
   useEffect(() => {

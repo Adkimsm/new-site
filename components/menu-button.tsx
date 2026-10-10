@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon, MenuIcon } from "@/components/icons";
-import { animateElement, runExit } from "@/lib/motion";
+import { animateElement } from "@/lib/motion";
+import { usePresence } from "@/lib/presence";
 
 export function MenuButton() {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
@@ -52,26 +52,10 @@ export function MenuButton() {
     };
   }, [open]);
 
-  // 打开：挂载浮层（与搜索浮层一致，只在 open 时挂载，避免预挂载那一帧
-  // 触发退场动画造成「闪一下」）
-  useEffect(() => {
-    if (open) setMounted(true);
-  }, [open]);
-
-  // 进场：只做淡入，不做位移（全屏菜单位移观感太强）
-  useEffect(() => {
-    if (!mounted || !open) return;
-    animateElement(menuRef.current, [{ opacity: 0 }, { opacity: 1 }]);
-  }, [mounted, open]);
-
-  // 退场：动画全部结束后再卸载
-  useEffect(() => {
-    if (open || !mounted) return;
-    const animations = [
-      animateElement(menuRef.current, [{ opacity: 1 }, { opacity: 0 }])
-    ].filter((animation): animation is Animation => animation !== null);
-    return runExit(animations, () => setMounted(false));
-  }, [open, mounted]);
+  // 条件挂载 + 开合动画（WAAPI）：只做淡入淡出，不做位移（全屏菜单位移观感太强）
+  const mounted = usePresence(open, (direction) => [
+    animateElement(menuRef.current, direction === "in" ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 1 }, { opacity: 0 }])
+  ]);
 
   const close = () => setOpen(false);
   const toggle = () => setOpen((value) => !value);

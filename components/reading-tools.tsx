@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpIcon, ListIcon } from "@/components/icons";
+import { animateElement } from "@/lib/motion";
+import { usePresence } from "@/lib/presence";
 
 type Heading = { id: string; text: string };
 
@@ -24,8 +26,28 @@ export function ReadingTools({ html }: { html: string }) {
   const [active, setActive] = useState("");
   const [progress, setProgress] = useState(0);
   const [tocOpen, setTocOpen] = useState(false);
-  const [lightbox, setLightbox] = useState("");
-  const [lightboxMounted, setLightboxMounted] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState("");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const tocRef = useRef<HTMLElement>(null);
+  const lightboxRef = useRef<HTMLButtonElement>(null);
+  const lightboxImgRef = useRef<HTMLImageElement>(null);
+
+  // 条件挂载 + 开合动画（WAAPI 命令式驱动，退场等 animation.finished 再卸载）
+  const tocMounted = usePresence(tocOpen, (direction) => [
+    animateElement(tocRef.current, direction === "in"
+      ? [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "translateY(0)" }]
+      : [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(8px)" }])
+  ]);
+  const lightboxMounted = usePresence(lightboxOpen, (direction) => direction === "in"
+    ? [
+        animateElement(lightboxRef.current, [{ opacity: 0 }, { opacity: 1 }]),
+        animateElement(lightboxImgRef.current, [{ transform: "scale(.97)" }, { transform: "scale(1)" }])
+      ]
+    : [
+        animateElement(lightboxRef.current, [{ opacity: 1 }, { opacity: 0 }]),
+        animateElement(lightboxImgRef.current, [{ transform: "scale(1)" }, { transform: "scale(.97)" }])
+      ]);
+
   useEffect(() => {
     const root = contentRef.current;
     if (!root) return;
@@ -66,13 +88,12 @@ export function ReadingTools({ html }: { html: string }) {
     elements.forEach((heading) => heading.setAttribute("tabindex", "-1"));
     root.querySelectorAll("pre").forEach((pre) => { if (!pre.parentElement?.classList.contains("code-block")) copyCode({ target: pre } as unknown as MouseEvent); });
     const images = [...root.querySelectorAll<HTMLImageElement>("img")];
-    const openImage = (image: HTMLImageElement) => () => { setLightboxMounted(true); requestAnimationFrame(() => setLightbox(image.currentSrc || image.src)); };
+    const openImage = (image: HTMLImageElement) => () => { setLightboxSrc(image.currentSrc || image.src); setLightboxOpen(true); };
     const imageHandlers = images.map((image) => { const handler = openImage(image); const keyboardHandler = (event: KeyboardEvent) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); handler(); } }; image.addEventListener("click", handler); image.addEventListener("keydown", keyboardHandler); image.tabIndex = 0; image.setAttribute("role", "button"); image.setAttribute("aria-label", "打开图片预览"); return [image, handler, keyboardHandler] as const; });
     window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
     return () => { window.removeEventListener("scroll", onScroll); imageHandlers.forEach(([image, handler, keyboardHandler]) => { image.removeEventListener("click", handler); image.removeEventListener("keydown", keyboardHandler); }); };
   }, []);
-  useEffect(() => { if (!lightbox) return; const previous = document.activeElement as HTMLElement | null; const close = (event: KeyboardEvent) => { if (event.key === "Escape") setLightbox(""); }; window.addEventListener("keydown", close); document.body.style.overflow = "hidden"; return () => { window.removeEventListener("keydown", close); document.body.style.overflow = ""; previous?.focus(); }; }, [lightbox]);
-  useEffect(() => { if (lightbox || !lightboxMounted) return; const timer = window.setTimeout(() => setLightboxMounted(false), 240); return () => window.clearTimeout(timer); }, [lightbox, lightboxMounted]);
+  useEffect(() => { if (!lightboxOpen) return; const previous = document.activeElement as HTMLElement | null; const close = (event: KeyboardEvent) => { if (event.key === "Escape") setLightboxOpen(false); }; window.addEventListener("keydown", close); document.body.style.overflow = "hidden"; return () => { window.removeEventListener("keydown", close); document.body.style.overflow = ""; previous?.focus(); }; }, [lightboxOpen]);
   // 目录浮层：Esc 或点击浮层外部关闭
   useEffect(() => {
     if (!tocOpen) return;
@@ -82,7 +103,7 @@ export function ReadingTools({ html }: { html: string }) {
     document.addEventListener("mousedown", onPointer);
     return () => { window.removeEventListener("keydown", onKey); document.removeEventListener("mousedown", onPointer); };
   }, [tocOpen]);
-  const closeLightbox = () => setLightbox("");
+  const closeLightbox = () => setLightboxOpen(false);
   const backToTop = () => { setTocOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); };
 
   return <>
@@ -90,11 +111,11 @@ export function ReadingTools({ html }: { html: string }) {
       <div ref={contentRef} id="article-content" className="prose" dangerouslySetInnerHTML={content} />
     </div>
     <div className="reading-tools" ref={toolsRef}>
-      <aside id="article-toc" className={`toc ${tocOpen ? "toc-open" : ""}`} aria-label="文章目录">
+      {tocMounted && <aside ref={tocRef} id="article-toc" className="toc" style={{ pointerEvents: tocOpen ? "auto" : "none" }} aria-label="文章目录">
         <strong>目录</strong>
         <button type="button" className="toc-top" onClick={backToTop}><ArrowUpIcon size={16} />回到顶部</button>
         {headings.map((heading) => <a className={active === heading.id ? "active" : ""} href={`#${heading.id}`} key={heading.id} onClick={() => setTocOpen(false)}>{heading.text}</a>)}
-      </aside>
+      </aside>}
       <button className="reading-fab" type="button" onClick={() => setTocOpen(!tocOpen)} aria-expanded={tocOpen} aria-controls="article-toc" aria-label={`文章目录 · 阅读进度 ${Math.round(progress)}%`} title="文章目录">
         <svg className="reading-fab__ring" aria-hidden="true" focusable="false" viewBox="0 0 48 48" fill="none">
           <circle className="reading-fab__track" cx="24" cy="24" r={PROGRESS_RADIUS} strokeWidth="2" />
@@ -103,6 +124,6 @@ export function ReadingTools({ html }: { html: string }) {
         <ListIcon />
       </button>
     </div>
-    {lightboxMounted && <button autoFocus className={`lightbox ${lightbox ? "open" : "closing"}`} aria-label="关闭图片预览" onClick={closeLightbox}><Image src={lightbox} alt="放大预览" width={1200} height={800} unoptimized /></button>}
+    {lightboxMounted && <button ref={lightboxRef} autoFocus className="lightbox" aria-label="关闭图片预览" onClick={closeLightbox}><Image ref={lightboxImgRef} src={lightboxSrc} alt="放大预览" width={1200} height={800} unoptimized /></button>}
   </>;
 }
