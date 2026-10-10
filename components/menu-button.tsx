@@ -52,6 +52,12 @@ export function MenuButton() {
     };
   }, [open]);
 
+  // 打开：挂载浮层（与搜索浮层一致，只在 open 时挂载，避免预挂载那一帧
+  // 触发退场动画造成「闪一下」）
+  useEffect(() => {
+    if (open) setMounted(true);
+  }, [open]);
+
   // 进场：只做淡入，不做位移（全屏菜单位移观感太强）
   useEffect(() => {
     if (!mounted || !open) return;
@@ -68,12 +74,6 @@ export function MenuButton() {
   }, [open, mounted]);
 
   const close = () => setOpen(false);
-  const toggle = () => {
-    if (open) close();
-    else {
-      setMounted(true);
-      requestAnimationFrame(() => setOpen(true));
-    }
-  };
+  const toggle = () => setOpen((value) => !value);
   return <><button ref={buttonRef} className={`menu ${open ? "is-open" : ""}`} aria-label={open ? "关闭菜单" : "打开菜单"} aria-expanded={open} aria-controls="mobile-nav" onClick={toggle}><span className="menu-icon menu-icon-open"><MenuIcon /></span><span className="menu-icon menu-icon-close"><CloseIcon /></span></button>{mounted && <nav ref={menuRef} id="mobile-nav" className={`mobile-menu ${open ? "open" : ""}`} aria-label="移动端导航" onClick={(event) => { if (event.target === event.currentTarget) close(); }}><div className="mobile-menu-inner"><Link ref={firstLinkRef} onClick={close} href="/posts">文章</Link><Link onClick={close} href="/about">关于</Link><Link onClick={close} href="/links">链接</Link><Link onClick={close} href="/rss.xml">RSS</Link></div></nav>}</>;
 }
