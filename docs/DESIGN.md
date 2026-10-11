@@ -113,9 +113,10 @@
 
 ### 页面过渡（原生 View Transitions）
 
-- 前端跳转由 `components/page-transition.tsx` 调用 `document.startViewTransition()` 驱动，表现层在 `styles/motion.css`：内容区交叉淡入 + 轻微上浮（旧页 `--duration-fast` 上移淡出，新页 `--duration-normal` 延迟半个 `--duration-fast` 淡入上浮）。
+- 前端跳转由 `lib/view-transition.ts` 的 `useViewTransitionNavigate()` 调用 `document.startViewTransition()` 驱动，表现层在 `styles/motion.css`：内容区交叉淡入 + 轻微上浮（旧页 `--duration-fast` 上移淡出，新页 `--duration-normal` 延迟半个 `--duration-fast` 淡入上浮）。`components/page-transition.tsx` 只负责全局点击拦截，键盘导航（搜索浮层回车）复用同一个 hook，避免绕过过渡。
 - 拦截方式是 window **捕获阶段**的点击代理：先 `preventDefault()` 让 next/link 自身的 onClick 提前返回，再包住 `router.push()`。不走捕获就会被 React 的事件委托抢先完成跳转。
 - 固定的导航与页脚用 `view-transition-name` 单独成组并取消动画，否则会被卷进 root 快照一起淡入淡出。过渡浮层设 `pointer-events: none`，动画期间仍可点击。
+- 搜索浮层与移动菜单同样要单独命名（`search-overlay` / `mobile-menu`）：它们会在导航时播放退场动画，若留在 root 快照里就会同时出现在新旧两张快照中（新快照拍到的是半透明中间态），交叉淡入互相抵消，表现为「动画丢了」。命名后 old 快照淡出、new 快照隐藏。**移动菜单在 DOM 上是 `<header class="nav">` 的后代**，命名同时把它从 `site-nav` 组里摘出来——否则会被 `::view-transition-old(site-nav) { display: none }` 一起抹掉，表现为进入页面时「闪一下」。
 - 不支持该 API 的浏览器与 `prefers-reduced-motion: reduce` 用户不拦截，回落到原有入场动画。首次跳转后给 `<html>` 加上 `vt-nav`（只加不删）关闭 `.page` / `.hero-*` 的入场动画——新快照可能在入场动画起始帧被拍摄而发白，且重新加回动画会在过渡结束后再淡入一次。首屏加载时该标记尚不存在，入场动画照常播放。
 - 浏览器后退/前进不触发过渡（不做 popstate 拦截），这是有意取舍。
 

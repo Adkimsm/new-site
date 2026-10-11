@@ -1,10 +1,10 @@
 /* ==========================================================================
    页面过渡层 — 原生 View Transitions API
    --------------------------------------------------------------------------
-   站内跳转由 components/page-transition.tsx 调用 document.startViewTransition()
+   站内跳转由 lib/view-transition.ts 调用 document.startViewTransition()
    触发，这里只负责快照的动画表现：内容区交叉淡入 + 轻微上浮，常驻的导航与页脚
-   保持静止。不支持该 API 的浏览器完全不受影响（组件会跳过拦截，走默认跳转），
-   页面自身的入场动画继续生效。
+   保持静止，搜索与移动菜单等浮层单独成组、只淡出。不支持该 API 的浏览器完全
+   不受影响（组件会跳过拦截，走默认跳转），页面自身的入场动画继续生效。
 
    时长复用 tokens 里的 --duration-*，不新增数值。
    ========================================================================== */
@@ -48,6 +48,33 @@
 
 ::view-transition-new(site-nav),
 ::view-transition-new(site-footer) { animation: none; }
+
+/* ---- 浮层：搜索与移动菜单不参与内容区的交叉淡入 -------------------------
+   这两个浮层会在导航时被链接的 onClick 关闭并播放退场动画。若它们留在 root
+   快照里，就会同时出现在新旧两张快照中（新快照拍到的是半透明的退场中间态），
+   交叉淡入因此互相抵消，观感上「动画丢了」。单独命名即可把它们从 root 快照里
+   剥离：old 快照照常淡出，new 快照隐藏（此刻浮层已无意义），浮层干净退场、
+   内容区照常交叉淡入。
+
+   移动菜单在 DOM 上是 <header class="nav"> 的后代，命名同时把它从 site-nav 组里
+   摘出来 —— 否则会被上面 `::view-transition-old(site-nav) { display: none }` 一起
+   抹掉，表现为进入页面时「闪一下」。 */
+
+.search-overlay { view-transition-name: search-overlay; }
+.mobile-menu { view-transition-name: mobile-menu; }
+
+::view-transition-old(search-overlay),
+::view-transition-old(mobile-menu) {
+  animation: vt-fade-out var(--duration-normal) var(--ease-standard) both;
+}
+
+::view-transition-new(search-overlay),
+::view-transition-new(mobile-menu) { display: none; }
+
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
 
 /* ---- 过渡期间关闭页面自身的入场动画 -------------------------------------
    见 components/page-transition.tsx 中 NAV_FLAG 的说明：新快照可能在入场动画

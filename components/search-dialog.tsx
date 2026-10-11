@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CloseIcon } from "@/components/icons";
 import { animateElement } from "@/lib/motion";
 import { usePresence } from "@/lib/presence";
+import { useViewTransitionNavigate } from "@/lib/view-transition";
 import { getSnippet, highlight, searchPosts, type SearchPost } from "@/lib/search";
 
 type Status = "idle" | "loading" | "ready" | "error";
@@ -20,7 +20,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
   const overlayRef = useRef<HTMLDivElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
   const loadedRef = useRef(false);
-  const router = useRouter();
+  const navigate = useViewTransitionNavigate();
 
   const results = searchPosts(posts, query);
   const hasQuery = query.trim().length > 0;
@@ -98,7 +98,8 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
         if (!target) return;
         event.preventDefault();
         onClose();
-        router.push(`/posts/${target.slug}`);
+        // 走与点击同一条带过渡的跳转路径，否则键盘选择会绕过 View Transition
+        navigate(`/posts/${target.slug}`);
         return;
       }
       if (event.key !== "Tab" || !panelRef.current) return;
@@ -124,7 +125,7 @@ export function SearchDialog({ open, onClose }: { open: boolean; onClose: () => 
       document.body.style.overflow = previousOverflow;
       restoreRef.current?.focus();
     };
-  }, [open, onClose, router]);
+  }, [open, onClose, navigate]);
 
   // 选中项滚动到可视区域
   useEffect(() => {

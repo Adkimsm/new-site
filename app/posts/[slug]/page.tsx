@@ -80,8 +80,8 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
     <div className="post-tags">{post.tags.map((tag) => <span className="pill" key={tag}>#{tag}</span>)}</div>
 
     <nav className="post-nav" aria-label="文章导航">
-      {posts[index + 1] && <a className="previous-post" href={`/posts/${posts[index + 1].slug}`}><span className="post-nav-label">上一篇</span><span>{posts[index + 1].title}</span></a>}
-      {posts[index - 1] && <a className="next-post" href={`/posts/${posts[index - 1].slug}`}><span className="post-nav-label">下一篇</span><span>{posts[index - 1].title}</span></a>}
+      {posts[index + 1] && <Link className="previous-post" href={`/posts/${posts[index + 1].slug}`}><span className="post-nav-label">上一篇</span><span>{posts[index + 1].title}</span></Link>}
+      {posts[index - 1] && <Link className="next-post" href={`/posts/${posts[index - 1].slug}`}><span className="post-nav-label">下一篇</span><span>{posts[index - 1].title}</span></Link>}
     </nav>
   </article>;
 }
