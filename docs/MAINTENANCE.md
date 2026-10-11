@@ -10,7 +10,7 @@
 
 ## 样式
 
-样式全部是原生 CSS，没有 CSS 框架。`app/globals.css` 只负责按固定顺序 `@import` `styles/` 下的各层文件（tokens → base → layout → components → prose → reading → fonts）。
+样式全部是原生 CSS，没有 CSS 框架。`app/globals.css` 只负责按固定顺序 `@import` `styles/` 下的各层文件（tokens → base → motion → layout → components → prose → reading → fonts）。
 
 - 新增颜色、间距、圆角、字号一律先加到 `styles/tokens.css`，不要在组件里写死数值。
 - 改色值时要同时改「系统偏好」与「手动选择」两个暗色块，并同步 `docs/DESIGN.md`。

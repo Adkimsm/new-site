@@ -6,6 +6,7 @@
 
      tokens.css      设计令牌（颜色、间距、圆角、字号、版心、动效）
      base.css        reset、文档、链接、选区、焦点、可访问性辅助、减少动效
+     motion.css      页面过渡（原生 View Transitions API）
      layout.css      版心、页首、分节、导航、移动菜单、首页首屏、页脚
      components.css  eyebrow、按钮、胶囊、卡片、表单、空状态、列表、时间轴
      prose.css       正文排版（标题、引用、代码块、表格、脚注、图片）
@@ -18,6 +19,7 @@
 
 @import "../styles/tokens.css";
 @import "../styles/base.css";
+@import "../styles/motion.css";
 @import "../styles/layout.css";
 @import "../styles/components.css";
 @import "../styles/prose.css";

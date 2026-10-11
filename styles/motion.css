@@ -1,0 +1,77 @@
+/* ==========================================================================
+   页面过渡层 — 原生 View Transitions API
+   --------------------------------------------------------------------------
+   站内跳转由 components/page-transition.tsx 调用 document.startViewTransition()
+   触发，这里只负责快照的动画表现：内容区交叉淡入 + 轻微上浮，常驻的导航与页脚
+   保持静止。不支持该 API 的浏览器完全不受影响（组件会跳过拦截，走默认跳转），
+   页面自身的入场动画继续生效。
+
+   时长复用 tokens 里的 --duration-*，不新增数值。
+   ========================================================================== */
+
+/* ---- 内容区：旧页快速退场，新页稍晚进场 --------------------------------- */
+
+::view-transition-old(root) {
+  animation: vt-leave var(--duration-fast) var(--ease-standard) both;
+}
+
+::view-transition-new(root) {
+  animation: vt-enter var(--duration-normal) var(--ease-standard) calc(var(--duration-fast) * .5) both;
+}
+
+@keyframes vt-leave {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-4px); }
+}
+
+@keyframes vt-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 常驻外壳：导航与页脚不参与过渡 -------------------------------------
+   不给它们命名就会被卷进 root 快照一起淡入淡出，固定的导航会在跳转时闪动
+   （模糊背景尤其明显）。命名后单独成组并取消动画，old 快照直接隐藏以免
+   新旧两层同时出现。 */
+
+.nav { view-transition-name: site-nav; }
+.footer { view-transition-name: site-footer; }
+
+::view-transition-group(site-nav),
+::view-transition-group(site-footer) {
+  animation: none;
+  z-index: 20;
+}
+
+::view-transition-old(site-nav),
+::view-transition-old(site-footer) { display: none; }
+
+::view-transition-new(site-nav),
+::view-transition-new(site-footer) { animation: none; }
+
+/* ---- 过渡期间关闭页面自身的入场动画 -------------------------------------
+   见 components/page-transition.tsx 中 NAV_FLAG 的说明：新快照可能在入场动画
+   的起始帧被拍摄，导致画面发白。该标记只加不删，所以不会在过渡结束后重放动画。 */
+
+html.vt-nav .page,
+html.vt-nav .post-page,
+html.vt-nav .hero-copy,
+html.vt-nav .hero h1,
+html.vt-nav .hero p,
+html.vt-nav .hero-links { animation: none; }
+
+/* ---- 过渡浮层不拦截指针事件 ---------------------------------------------
+   动画进行中仍可点击导航，避免 300ms 内的点击被吞掉。 */
+
+::view-transition { pointer-events: none; }
+
+/* ---- 减少动效：快照直接切换，与默认行为一致 ----------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+  }
+}

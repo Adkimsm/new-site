@@ -111,6 +111,14 @@
 - 只做 6–12px 位移、透明度与颜色过渡；不做缩放或视差特效。
 - `prefers-reduced-motion: reduce` 下所有动画与过渡时长归零。该模式下刻意**不**写 `transform: none`：那会让以 `scaleX(0)` 表达隐藏态的导航下划线、目录浮层反而全部显现。
 
+### 页面过渡（原生 View Transitions）
+
+- 前端跳转由 `components/page-transition.tsx` 调用 `document.startViewTransition()` 驱动，表现层在 `styles/motion.css`：内容区交叉淡入 + 轻微上浮（旧页 `--duration-fast` 上移淡出，新页 `--duration-normal` 延迟半个 `--duration-fast` 淡入上浮）。
+- 拦截方式是 window **捕获阶段**的点击代理：先 `preventDefault()` 让 next/link 自身的 onClick 提前返回，再包住 `router.push()`。不走捕获就会被 React 的事件委托抢先完成跳转。
+- 固定的导航与页脚用 `view-transition-name` 单独成组并取消动画，否则会被卷进 root 快照一起淡入淡出。过渡浮层设 `pointer-events: none`，动画期间仍可点击。
+- 不支持该 API 的浏览器与 `prefers-reduced-motion: reduce` 用户不拦截，回落到原有入场动画。首次跳转后给 `<html>` 加上 `vt-nav`（只加不删）关闭 `.page` / `.hero-*` 的入场动画——新快照可能在入场动画起始帧被拍摄而发白，且重新加回动画会在过渡结束后再淡入一次。首屏加载时该标记尚不存在，入场动画照常播放。
+- 浏览器后退/前进不触发过渡（不做 popstate 拦截），这是有意取舍。
+
 ## 9. 响应式断点
 
 ```text
@@ -128,6 +136,7 @@
 ```text
 tokens.css      设计令牌
 base.css        reset、文档、链接、选区、焦点、辅助类、减少动效
+motion.css      页面过渡（原生 View Transitions API）
 layout.css      版心、页首、分节、导航、移动菜单、首屏、页脚
 components.css  eyebrow、按钮、胶囊、表单、空状态、链接列表、文章列表、归档
 prose.css       正文排版、代码块、表格、脚注、图片
