@@ -6,6 +6,12 @@
 
 系列（`series` / `seriesOrder`）只是文章页顶部的一块内嵌列表，没有独立页面。`getSeriesPosts()` 负责排序，单篇系列不渲染。
 
+## 友情链接
+
+友链数据在 `content/links.md` 的 frontmatter 里，字段：`name`（必填）、`url`（必填，完整地址）、`avatar`（可选，本地 `/images/friends/xxx.png` 或远程 `https://` 地址）、`description`（可选，一句话介绍）。列表顺序即页面渲染顺序。
+
+`lib/content/links.ts` 的 `getFriendLinks()` 负责解析与校验（zod）：本地头像必须存在于 `public/`，否则构建失败；远程头像不做校验。远程头像在页面里用原生 `<img>` 加载，第三方挂掉或防盗链时会回退为首字母块，不会出现破图。文件不存在或 `links` 为空时，页面显示空状态而不是报错。
+
 依赖升级后运行 `pnpm install`、`pnpm typecheck`、`pnpm lint`、`pnpm test` 和 `pnpm build`。字体、搜索索引和图片资源保持本地化，不在页面中引入不必要的第三方请求。
 
 ## 样式

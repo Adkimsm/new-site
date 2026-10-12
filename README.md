@@ -13,6 +13,8 @@ pnpm dev
 
 文章放在 `content/posts/`，文件名就是文章 URL。提交主分支即可发布。Frontmatter 必须包含 `title`、`date` 和 `description`，日期使用 `YYYY-MM-DD`。
 
+友情链接在 `content/links.md` 的 frontmatter 里维护，字段说明见 `docs/MAINTENANCE.md`。
+
 ## 部署
 
 将公开仓库连接到 Vercel，生产分支提交自动部署，之后在 Vercel 添加 `adk.bot.cd` 并按控制台提示配置 DNS。项目本身不需要数据库、环境变量或后端服务。

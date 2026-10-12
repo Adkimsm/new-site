@@ -322,6 +322,76 @@ a.pill:hover {
 
 .link-list__note { color: var(--muted); font-size: var(--text-sm); }
 
+/* ---- 友情链接（链接页） ------------------------------------------------
+   头像 + 站点名 + 一句话介绍的行式列表。沿用链接列表的发丝分隔线与克制
+   风格，不用卡片与阴影；头像为细线圆环，缺失或加载失败时回退首字母块。 */
+.friend-list {
+  list-style: none;
+  margin: var(--space-5) 0 0;
+  padding: 0;
+}
+
+.friend-item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.friend-item:first-child { padding-top: 0; }
+.friend-item:last-child { padding-bottom: 0; border-bottom: 0; }
+
+.friend-avatar {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: var(--soft);
+  object-fit: cover;
+}
+
+/* 首字母块：无头像或加载失败时的回退 */
+.friend-avatar--monogram {
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+}
+
+/* 网格子项默认 min-width:auto，长站点名会撑破列宽 */
+.friend-body { min-width: 0; }
+
+.friend-name {
+  color: var(--ink);
+  font-size: var(--text-base);
+  line-height: var(--leading-snug);
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+
+.friend-desc {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin: .25rem 0 0;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+/* 悬停：名称加下划线、头像圆环加深；触屏点按会误触 :hover，故只给 hover 设备 */
+@media (hover: hover) {
+  .friend-item:hover .friend-name { text-decoration: underline; }
+  .friend-item:hover .friend-avatar { border-color: var(--muted); }
+}
+
+.friend-item:focus-within .friend-name { text-decoration: underline; }
+
 /* ---- 文章列表 ----------------------------------------------------------
    日期在左（灰色小字）、标题在右的纯文字行。悬停只做颜色与下划线变化，
    不使用背景条带，也不加卡片边框。 */
