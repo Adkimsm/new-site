@@ -6,9 +6,24 @@
 
 系列（`series` / `seriesOrder`）只是文章页顶部的一块内嵌列表，没有独立页面。`getSeriesPosts()` 负责排序，单篇系列不渲染。
 
+## 内容页面
+
+`content/pages/` 存放五个内容页：`about.mdx`、`privacy.md`、`copyright.md`、`disclaimer.md`、`links.md`。文件名即页面 slug，与 `app/{slug}/page.tsx` 一一对应。
+
+frontmatter 字段：`title`（必填，页面标题与 metadata）、`heading`（可选，页面 h1，缺省回退 `title`，如「关于」→「关于我」）、`eyebrow`（可选，页首英文标签）、`description`（可选，覆盖 metadata 描述）。`lib/content/pages.ts` 的 `getPageMeta()` 用 gray-matter + zod 解析；文件缺失、字段非法，或同一 slug 同时存在 `.md` 与 `.mdx`，都会让构建失败。
+
+## 正文渲染：md 与 mdx
+
+正文统一由 `@next/mdx` 编译，`lib/mdx/load.ts` 按扩展名动态载入组件，`lib/mdx/render.tsx` 的 `renderContent()` 把组件渲染成 HTML 字符串，再套用字符串版后处理（Shiki 代码高亮、h2/h3 标题锚点、外链 `target/rel`）。因此 `ReadingTools`、目录、复制按钮与 `styles/prose.css` 都无需改动。
+
+- `.md`：CommonMark + GFM（标题、列表、表格、引用、脚注、代码块、GFM 自动链接）。**不支持**原始 HTML（会被剥离）、JSX、`import`、缩进代码块、尖括号自动链接。
+- `.mdx`：在 markdown 之上支持 JSX、`import` / `export`、表达式 `{}` 与原始 HTML。例如 `about.mdx` 直接 `import { siteConfig }` 后写 `{siteConfig.name}`，不再需要占位符。
+
+需要动态值或原始 HTML 的内容用 `.mdx`，纯文字内容用 `.md`。插件在 `next.config.ts` 以字符串名声明（`remark-gfm`、`remark-frontmatter`），Turbopack 下才能序列化。
+
 ## 友情链接
 
-友链数据在 `content/links.md` 的 frontmatter 里，字段：`name`（必填）、`url`（必填，完整地址）、`avatar`（可选，本地 `/images/friends/xxx.png` 或远程 `https://` 地址）、`description`（可选，一句话介绍）。列表顺序即页面渲染顺序。
+友链数据在 `content/pages/links.md` 的 frontmatter 里，除通用页面字段（`title` 作为页面 h1、`eyebrow`）外，还有 `friendsTitle`（友链区块 h2，默认「友情链接」）与 `links`。单条友链字段：`name`（必填）、`url`（必填，完整地址）、`avatar`（可选，本地 `/images/friends/xxx.png` 或远程 `https://` 地址）、`description`（可选，一句话介绍）。列表顺序即页面渲染顺序。
 
 `lib/content/links.ts` 的 `getFriendLinks()` 负责解析与校验（zod）：本地头像必须存在于 `public/`，否则构建失败；远程头像不做校验。远程头像在页面里用原生 `<img>` 加载，第三方挂掉或防盗链时会回退为首字母块，不会出现破图。文件不存在或 `links` 为空时，页面显示空状态而不是报错。
 
@@ -68,7 +83,7 @@ pyftsubset /tmp/NotoSerifSC-VF.ttf \
 - **pnpm 无法启动，报 `libatomic.so.1`**：`sudo apt-get install -y libatomic1`。
 - **手动切深色后代码块仍是浅色**：检查 `styles/prose.css` 里 shiki 的四组选择器是否都还在（亮色基础、媒体查询暗色、属性暗色）。
 - **减少动效模式下导航下划线全部出现**：说明有人又把 `transform: none !important` 加回了 `prefers-reduced-motion` 块。
-- **文章目录里只有一个「Footnotes」**：说明正文标题没有 id。`lib/markdown.ts` 的 `addHeadingIds` 负责补 id；不要改回 `rehype-slug` —— 在 `remark-html` 之后接 rehype 插件拿不到 hast，是空操作。
+- **文章目录里只有一个「Footnotes」**：说明正文标题没有 id。`lib/mdx/render.tsx` 的 `addHeadingIds` 负责给 h2/h3 补 id（`renderContent` 会先清掉 React 的 `<!-- -->` 文本分隔注释，避免干扰匹配）；脚注小节自带的带属性标题不会被覆盖。
 - **代码复制按钮一闪就消失**：`ReadingTools` 里 `dangerouslySetInnerHTML` 必须是 memo 住的对象。React 按对象身份判断是否重写 innerHTML，写成内联对象会在每次重渲（例如滚动更新进度）时抹掉命令式注入的 DOM。
 - **列表的圆点贴到屏幕左边缘**：说明有人又给 `.contains-task-list` 清零了 `padding-left`。`list-style-position: outside` 的列表必须保留缩进，否则标记会被画到盒子外。
 - **触屏上点一下文章行就出现一块没有内边距的色块**：说明 hover 色带规则跑到了 `@media (hover: hover)` 外面。触屏点按会触发 `:hover`，必须把 hover 反馈关在这个媒体查询里。

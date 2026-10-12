@@ -1,34 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { markdownToHtml } from "@/lib/markdown";
+import { addHeadingIds, hardenExternalLinks } from "@/lib/mdx/render";
 
 describe("heading anchors", () => {
-  it("gives h2 and h3 ids so the article TOC has real targets", async () => {
-    const html = await markdownToHtml("## 为什么写作\n\n正文。\n\n### 清单\n");
+  it("gives h2 and h3 ids so the article TOC has real targets", () => {
+    const html = addHeadingIds("<h2>为什么写作</h2><p>正文。</p><h3>清单</h3>");
     expect(html).toContain('<h2 id="为什么写作">');
     expect(html).toContain('<h3 id="清单">');
   });
 
-  it("deduplicates repeated headings", async () => {
-    const html = await markdownToHtml("## 说明\n\n## 说明\n");
+  it("deduplicates repeated headings", () => {
+    const html = addHeadingIds("<h2>说明</h2><h2>说明</h2>");
     expect(html).toContain('<h2 id="说明">');
     expect(html).toContain('<h2 id="说明-1">');
   });
 
-  it("strips punctuation and inline markup from the slug", async () => {
-    const html = await markdownToHtml("## 数据表（一）\n\n## 带**强调**的标题\n");
+  it("strips punctuation and inline markup from the slug", () => {
+    const html = addHeadingIds("<h2>数据表（一）</h2><h2>带<strong>强调</strong>的标题</h2>");
     expect(html).not.toContain('id="数据表（一）"');
     expect(html).toContain('<h2 id="数据表一">');
     expect(html).toContain('<h2 id="带强调的标题">');
   });
 
-  it("does not clobber the footnote section heading from GFM", async () => {
-    const html = await markdownToHtml("脚注可以补充说明[^note]。\n\n[^note]: 这是脚注示例。\n");
-    expect(html).toContain('id="footnote-label"');
+  it("does not clobber a heading that already carries attributes", () => {
+    // GFM 脚注小节的标题自带 id，必须原样保留，否则锚点会失效。
+    expect(addHeadingIds('<h2 id="footnote-label">Footnotes</h2>')).toBe('<h2 id="footnote-label">Footnotes</h2>');
   });
+});
 
-  it("leaves existing external-link hardening intact", async () => {
-    const html = await markdownToHtml("参考 [站点](https://example.com/page)。\n");
-    expect(html).toContain('target="_blank"');
-    expect(html).toContain('rel="noopener noreferrer"');
+describe("external link hardening", () => {
+  it("adds target/rel to external links only", () => {
+    const external = hardenExternalLinks('<a href="https://example.com/page">站点</a>');
+    expect(external).toContain('target="_blank"');
+    expect(external).toContain('rel="noopener noreferrer"');
+    expect(hardenExternalLinks('<a href="#note">锚点</a>')).toBe('<a href="#note">锚点</a>');
+    expect(hardenExternalLinks('<a href="/about">站内</a>')).toBe('<a href="/about">站内</a>');
   });
 });

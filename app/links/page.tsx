@@ -1,18 +1,20 @@
 import { siteConfig } from "@/lib/site-config";
 import { buildMetadata } from "@/lib/metadata";
 import { getFriendLinks } from "@/lib/content/links";
-import { markdownToHtml } from "@/lib/markdown";
+import { loadPageBody } from "@/lib/mdx/load";
+import { renderContent } from "@/lib/mdx/render";
 import { FriendAvatar } from "@/components/friend-avatar";
 
-export const metadata = buildMetadata({ title: "链接", path: "/links" });
+const { title } = getFriendLinks();
+export const metadata = buildMetadata({ title, path: "/links" });
 
 export default async function Links() {
-  const { title, links, content } = getFriendLinks();
-  // 说明文字与文章正文共用同一套 Markdown 渲染，外链会自动补 target/rel。
-  const intro = content.trim() ? await markdownToHtml(content) : "";
+  const { title, eyebrow, friendsTitle, links, content, ext } = getFriendLinks();
+  // 说明文字与内容页正文共用同一套渲染管线，外链会自动补 target/rel。
+  const intro = content.trim() ? await renderContent(await loadPageBody("links", ext)) : "";
 
   return <section className="page prose">
-    <header className="page-header"><span className="eyebrow">Links</span><h1>链接</h1></header>
+    <header className="page-header">{eyebrow && <span className="eyebrow">{eyebrow}</span>}<h1>{title}</h1></header>
 
     <h2>联系</h2>
     <ul className="link-list">
@@ -21,7 +23,7 @@ export default async function Links() {
       <li><span className="link-list__label">RSS</span><a href="/rss.xml">订阅更新</a></li>
     </ul>
 
-    <h2>{title}</h2>
+    <h2>{friendsTitle}</h2>
     {intro && <div dangerouslySetInnerHTML={{ __html: intro }} />}
     {links.length === 0
       ? <div className="empty-state"><p>还没有友链。欢迎通过上方邮箱和我交换链接。</p></div>

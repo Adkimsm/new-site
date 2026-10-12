@@ -1,3 +1,13 @@
 import { buildMetadata } from "@/lib/metadata";
-export const metadata = buildMetadata({ title: "免责声明", path: "/disclaimer" });
-export default function Disclaimer() { return <section className="page prose"><header className="page-header"><span className="eyebrow">Disclaimer</span><h1>免责声明</h1></header><p>本站内容主要用于交流和记录，不构成专业建议。示例代码和技术信息请在适合你的环境中自行验证。因使用本站内容产生的直接或间接损失，作者不承担责任。</p></section>; }
+import { getPageMeta } from "@/lib/content/pages";
+import { loadPageBody } from "@/lib/mdx/load";
+import { renderContent } from "@/lib/mdx/render";
+import { ContentPage } from "@/components/content-page";
+
+const meta = getPageMeta("disclaimer");
+export const metadata = buildMetadata({ title: meta.title, description: meta.description, path: "/disclaimer" });
+
+export default async function Disclaimer() {
+  const html = await renderContent(await loadPageBody("disclaimer", meta.ext));
+  return <ContentPage meta={meta} html={html} />;
+}

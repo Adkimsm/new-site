@@ -2,9 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { z } from "zod";
+import type { ContentExt } from "@/lib/mdx/load";
 
 const schema = z.object({ title: z.string().min(1), date: z.string().date(), updated: z.string().date().optional(), description: z.string().min(1), tags: z.array(z.string()).default([]), featured: z.boolean().default(false), canonical: z.string().url().optional(), cover: z.string().optional(), draft: z.boolean().default(false), series: z.string().min(1).optional(), seriesOrder: z.number().int().optional() });
-export type Post = z.infer<typeof schema> & { slug: string; content: string; wordCount: number };
+export type Post = z.infer<typeof schema> & { slug: string; ext: ContentExt; content: string; wordCount: number };
 const dir = path.join(process.cwd(), "content/posts");
 
 /**
@@ -22,6 +23,9 @@ export function countWords(markdown: string) {
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/^\s{0,3}#{1,6}\s+/gm, " ")
     .replace(/^\s{0,3}>\s?/gm, " ")
+    // MDX 文件里的 import/export 与 JSX 标签不计入字数
+    .replace(/^\s*(?:import|export)\s.+$/gm, " ")
+    .replace(/<[^>]+>/g, " ")
     .replace(/[*_~]/g, " ");
   const cjk = text.match(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g)?.length ?? 0;
   const latin = text.replace(/[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g, " ").match(/[A-Za-z0-9]+/g)?.length ?? 0;
@@ -31,6 +35,9 @@ export function countWords(markdown: string) {
 /**
  * 读取并解析全部文章。
  *
+ * 正文支持 `.md`（CommonMark）与 `.mdx`（可写 JSX/import）两种后缀，二者共用
+ * 同一套 frontmatter 与渲染管线；`ext` 交给 `loadPostBody` 决定用哪种格式编译。
+ *
  * 草稿（`draft: true`）只在开发环境可见：`next dev` 便于本地预览，生产构建
  * （含 Vercel）会整体过滤掉。由于 sitemap、RSS、搜索索引与 `generateStaticParams`
  * 都复用这里的结果，草稿会自动从这些输出中消失，直接访问草稿 slug 也会 404。
@@ -38,13 +45,14 @@ export function countWords(markdown: string) {
 export function getPosts(): Post[] {
   if (!fs.existsSync(dir)) return [];
   const posts = fs.readdirSync(dir)
-    .filter((file) => file.endsWith(".md"))
+    .filter((file) => file.endsWith(".md") || file.endsWith(".mdx"))
     .map((file) => {
       const raw = fs.readFileSync(path.join(dir, file), "utf8");
       const parsed = matter(raw);
       const data = schema.parse(parsed.data);
       if (data.cover?.startsWith("/") && !fs.existsSync(path.join(process.cwd(), "public", data.cover))) throw new Error(`Cover image not found: ${data.cover}`);
-      return { ...data, slug: file.replace(/\.md$/, ""), content: parsed.content, wordCount: countWords(parsed.content) };
+      const ext: ContentExt = file.endsWith(".mdx") ? "mdx" : "md";
+      return { ...data, slug: file.replace(/\.mdx?$/, ""), ext, content: parsed.content, wordCount: countWords(parsed.content) };
     })
     .sort((a, b) => b.date.localeCompare(a.date));
   return process.env.NODE_ENV === "production" ? posts.filter((post) => !post.draft) : posts;

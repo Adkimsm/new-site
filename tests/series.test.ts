@@ -8,6 +8,7 @@ const post = (overrides: Partial<Post> & { slug: string }): Post => ({
   tags: [],
   featured: false,
   draft: false,
+  ext: "md",
   content: "",
   wordCount: 0,
   ...overrides

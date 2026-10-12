@@ -13,7 +13,7 @@ pnpm dev
 
 文章放在 `content/posts/`，文件名就是文章 URL。提交主分支即可发布。Frontmatter 必须包含 `title`、`date` 和 `description`，日期使用 `YYYY-MM-DD`。
 
-友情链接在 `content/links.md` 的 frontmatter 里维护，字段说明见 `docs/MAINTENANCE.md`。
+正文同时支持 `.md`（CommonMark）与 `.mdx`（可写 JSX / `import`）。内容页（`/about`、`/privacy`、`/copyright`、`/disclaimer`）放在 `content/pages/`，友链在 `content/pages/links.md`，字段与 md/mdx 的区别见 `docs/MAINTENANCE.md`。
 
 ## 部署
 

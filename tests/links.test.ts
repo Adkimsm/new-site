@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { getFriendLinks, linkSchema, validateFriendLinkUrls } from "@/lib/content/links";
 
 describe("friend links", () => {
-  it("parses content/links.md into a validated shape", () => {
-    const { title, links } = getFriendLinks();
+  it("parses content/pages/links.md into a validated shape", () => {
+    const { title, friendsTitle, links } = getFriendLinks();
     expect(title.length).toBeGreaterThan(0);
+    expect(friendsTitle.length).toBeGreaterThan(0);
     expect(Array.isArray(links)).toBe(true);
     for (const link of links) {
       expect(link.name.length).toBeGreaterThan(0);

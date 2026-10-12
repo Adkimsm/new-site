@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getPosts, getSeriesPosts } from "@/lib/content/posts";
-import { markdownToHtml } from "@/lib/markdown";
+import { loadPostBody } from "@/lib/mdx/load";
+import { renderContent } from "@/lib/mdx/render";
 import { siteConfig } from "@/lib/site-config";
 import { buildMetadata } from "@/lib/metadata";
 import { ReadingTools } from "@/components/reading-tools";
@@ -31,7 +32,7 @@ export default async function PostPage({ params }: { params: Promise<{ slug: str
   const index = posts.findIndex((item) => item.slug === slug);
   const post = posts[index];
   if (!post) notFound();
-  const html = await markdownToHtml(post.content);
+  const html = await renderContent(await loadPostBody(post.slug, post.ext));
   const series = getSeriesPosts(post, posts);
   const permalink = post.canonical || `${siteConfig.url}/posts/${post.slug}`;
   const structuredData = { "@context": "https://schema.org", "@type": "BlogPosting", headline: post.title, description: post.description, datePublished: post.date, dateModified: post.updated ?? post.date, author: { "@type": "Person", name: siteConfig.author }, mainEntityOfPage: `${siteConfig.url}/posts/${post.slug}` };

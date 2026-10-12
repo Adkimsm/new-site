@@ -104,8 +104,8 @@ ___
 - 行内链接：[Example](https://example.com)
 - 带标题链接：[Example](https://example.com "Example 标题")
 - 引用式链接：[引用链接][ref-link]
-- 自动链接：<https://example.com>
-- 邮箱自动链接：<user@example.com>
+- 自动链接：[example.com](https://example.com)
+- 邮箱自动链接：[user@example.com](mailto:user@example.com)
 - GFM 自动链接：https://github.com 和 www.github.com
 - 图片：![替代文本](https://via.placeholder.com/150 "图片标题")
 - 引用式图片：![引用图片][ref-image]
@@ -118,11 +118,13 @@ ___
 
 行内代码：`const a = 1;`，包含反引号的代码：`` `反引号` ``。
 
-缩进代码块：
+MDX 不支持缩进代码块（会被当作段落），因此改用围栏代码块：
 
-    function hello() {
-      console.log("Hello, world!");
-    }
+```js
+function hello() {
+  console.log("Hello, world!");
+}
+```
 
 围栏代码块（反引号）：
 
@@ -165,7 +167,7 @@ def greet(name):
   - 另一项
 </details>
 
-<!-- HTML 注释 -->
+{/* HTML 注释 */}
 
 ## 其他
 
