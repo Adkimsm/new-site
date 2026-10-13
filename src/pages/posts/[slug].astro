@@ -1,0 +1,100 @@
+---
+import { getEntry, render } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { ReadingTools } from "@/components/ReadingTools";
+import { getPosts, getSeriesPosts, type Post } from "@/lib/posts";
+import { siteConfig } from "@/lib/site-config";
+import { buildMetadata } from "@/lib/metadata";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  // 传入 index 与 posts，避免每篇文章重复查询集合；上一篇/下一篇直接取相邻项。
+  return posts.map((post, index) => ({ params: { slug: post.slug }, props: { post, index, posts } }));
+}
+
+interface Props {
+  post: Post;
+  index: number;
+  posts: Post[];
+}
+
+const { post, index, posts } = Astro.props;
+const entry = await getEntry("posts", post.slug);
+if (!entry) throw new Error(`Post entry not found: ${post.slug}`);
+const { Content } = await render(entry);
+const series = getSeriesPosts(post, posts);
+const permalink = post.canonical || `${siteConfig.url}/posts/${post.slug}`;
+
+const meta = buildMetadata({
+  title: post.title,
+  description: post.description,
+  path: `/posts/${post.slug}`,
+  canonical: post.canonical,
+  image: post.cover,
+  type: "article",
+  publishedTime: post.date,
+  modifiedTime: post.updated ?? post.date
+});
+
+const structuredData = { "@context": "https://schema.org", "@type": "BlogPosting", headline: post.title, description: post.description, datePublished: post.date, dateModified: post.updated ?? post.date, author: { "@type": "Person", name: siteConfig.author }, mainEntityOfPage: `${siteConfig.url}/posts/${post.slug}` };
+---
+
+<BaseLayout {...meta}>
+  <article class="page post-page">
+    <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+
+    <header class="post-header">
+      <span class="eyebrow">Essay{post.draft && <span class="pill post-draft">草稿</span>}</span>
+      <h1>{post.title}</h1>
+      <div class="meta">
+        <time datetime={post.date}>{post.date}</time>
+        {post.updated && <> · 更新于 <time datetime={post.updated}>{post.updated}</time></>}
+        {` · ${post.wordCount} 字`}
+      </div>
+    </header>
+
+    {series.length > 1 && (
+      <nav class="post-series" aria-label={`系列：${post.series}`}>
+        <p class="post-series__label">系列 · {post.series}</p>
+        <ol class="post-series__list">
+          {series.map((item, seriesIndex) => {
+            const current = item.slug === post.slug;
+            return (
+              <li class={current ? "is-current" : ""}>
+                <span class="post-series__index" aria-hidden="true">{String(seriesIndex + 1).padStart(2, "0")}</span>
+                {current
+                  ? <span class="post-series__title" aria-current="page">{item.title}</span>
+                  : <a class="post-series__title" href={`/posts/${item.slug}`}>{item.title}</a>}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+    )}
+
+    {post.cover && (
+      <figure class="post-cover-wrap">
+        <img class="post-cover" src={post.cover} alt="" width="1200" height="630" />
+      </figure>
+    )}
+
+    <div class="post-body">
+      <div id="article-content" class="prose"><Content /></div>
+    </div>
+    <ReadingTools client:load />
+
+    <aside class="license-card">
+      <strong>{post.title}</strong>
+      <p>本文作者：{siteConfig.author} · 内容采用 {siteConfig.contentLicense} 许可。</p>
+      <p>原文链接：<a href={permalink}>{permalink}</a></p>
+      <p><small>转载时请保留作者与原文链接，商业使用请先联系作者。</small></p>
+    </aside>
+
+    <div class="post-tags">{post.tags.map((tag) => <span class="pill">#{tag}</span>)}</div>
+
+    <nav class="post-nav" aria-label="文章导航">
+      {posts[index + 1] && <a class="previous-post" href={`/posts/${posts[index + 1].slug}`}><span class="post-nav-label">上一篇</span><span>{posts[index + 1].title}</span></a>}
+      {posts[index - 1] && <a class="next-post" href={`/posts/${posts[index - 1].slug}`}><span class="post-nav-label">下一篇</span><span>{posts[index - 1].title}</span></a>}
+    </nav>
+  </article>
+</BaseLayout>

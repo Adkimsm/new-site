@@ -1,22 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { countWords, getPosts, groupPosts, validatePostSlugs } from "@/lib/content/posts";
-describe("content", () => { it("loads valid posts sorted newest first", () => { const posts = getPosts(); expect(posts.length).toBe(7); expect(posts.every((post, index) => index === 0 || posts[index - 1].date >= post.date)).toBe(true); }); it("groups posts by year and month", () => { const groups = groupPosts(getPosts()); expect(groups["2026"]["09"]).toHaveLength(4); expect(groups["2026"]["08"]).toHaveLength(2); expect(groups["2026"]["07"]).toHaveLength(1); }); it("does not contain duplicate URLs", () => { expect(validatePostSlugs(getPosts())).toBe(true); }); });
+import { groupPosts, validatePostSlugs } from "@/lib/post-utils";
+import { post } from "./helpers";
 
-describe("countWords", () => {
-  it("counts CJK characters individually and Latin runs as words", () => {
-    expect(countWords("你好世界 hello world")).toBe(6);
+describe("groupPosts", () => {
+  it("groups posts by year and month, preserving input order within a month", () => {
+    const posts = [
+      post({ slug: "a", date: "2026-09-05" }),
+      post({ slug: "b", date: "2026-09-12" }),
+      post({ slug: "c", date: "2026-08-18" }),
+      post({ slug: "d", date: "2025-07-01" })
+    ];
+    const groups = groupPosts(posts);
+    // 年份/月份是整数样式的键，JS 会按数值升序枚举（与迁移前的归档页一致）
+    expect(Object.keys(groups)).toEqual(["2025", "2026"]);
+    expect(groups["2026"]["09"].map((item) => item.slug)).toEqual(["a", "b"]);
+    expect(groups["2026"]["08"]).toHaveLength(1);
+    expect(groups["2025"]["07"]).toHaveLength(1);
   });
 
-  it("ignores fenced and inline code", () => {
-    expect(countWords("正文\n\n```js\nconst a = 1;\n```\n\n`code`")).toBe(2);
+  it("returns an empty object for no posts", () => {
+    expect(groupPosts([])).toEqual({});
+  });
+});
+
+describe("validatePostSlugs", () => {
+  it("accepts unique slugs", () => {
+    expect(validatePostSlugs([post({ slug: "a" }), post({ slug: "b" })])).toBe(true);
   });
 
-  it("ignores markdown markers but keeps link text", () => {
-    expect(countWords("**粗体** [链接](https://example.com)")).toBe(4);
-  });
-
-  it("reports a realistic count for real Chinese posts", () => {
-    const [first] = getPosts();
-    expect(first.wordCount).toBeGreaterThan(10);
+  it("flags duplicate slugs", () => {
+    expect(validatePostSlugs([post({ slug: "a" }), post({ slug: "a" })])).toBe(false);
   });
 });

@@ -1,34 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { getPageMeta, pageSchema } from "@/lib/content/pages";
+import { pageSchema } from "@/lib/content-schemas";
 
-describe("content pages", () => {
-  it("parses every content page's frontmatter", () => {
-    for (const slug of ["about", "privacy", "copyright", "disclaimer"]) {
-      const meta = getPageMeta(slug);
-      expect(meta.title.length).toBeGreaterThan(0);
-      expect(meta.eyebrow).toBeTruthy();
-    }
-  });
-
-  it("keeps the about page's distinct h1", () => {
-    const about = getPageMeta("about");
-    expect(about.title).toBe("关于");
-    expect(about.heading).toBe("关于我");
-    expect(about.ext).toBe("mdx");
-  });
-
-  it("uses plain markdown for the text-only pages", () => {
-    expect(getPageMeta("privacy").ext).toBe("md");
-    expect(getPageMeta("copyright").ext).toBe("md");
-    expect(getPageMeta("disclaimer").ext).toBe("md");
-  });
-
-  it("rejects frontmatter without a title", () => {
+describe("pageSchema", () => {
+  it("requires a title", () => {
     expect(pageSchema.safeParse({}).success).toBe(false);
     expect(pageSchema.safeParse({ title: "关于" }).success).toBe(true);
   });
 
-  it("throws for a missing page", () => {
-    expect(() => getPageMeta("does-not-exist")).toThrow();
+  it("keeps heading and eyebrow optional", () => {
+    const parsed = pageSchema.parse({ title: "关于", heading: "关于我", eyebrow: "About" });
+    expect(parsed.heading).toBe("关于我");
+    expect(parsed.eyebrow).toBe("About");
+    expect(pageSchema.parse({ title: "隐私政策" }).heading).toBeUndefined();
+  });
+
+  it("accepts an optional description override", () => {
+    expect(pageSchema.parse({ title: "链接", description: "自定义描述" }).description).toBe("自定义描述");
+  });
+
+  it("rejects empty strings for constrained fields", () => {
+    expect(pageSchema.safeParse({ title: "" }).success).toBe(false);
+    expect(pageSchema.safeParse({ title: "x", eyebrow: "" }).success).toBe(false);
   });
 });

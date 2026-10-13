@@ -1,0 +1,23 @@
+---
+import type { PageMeta } from "@/lib/content-schemas";
+
+/**
+ * 内容页统一外壳：eyebrow 标签行 + h1 + 正文。
+ *
+ * 正文由 `<slot />` 接收（调用方用 `astro:content` 的 `render()` 渲染后传入），
+ * 与文章页共用同一套排版（`.prose`）。
+ */
+interface Props {
+  meta: PageMeta;
+}
+
+const { meta } = Astro.props;
+---
+
+<section class="page prose">
+  <header class="page-header">
+    {meta.eyebrow && <span class="eyebrow">{meta.eyebrow}</span>}
+    <h1>{meta.heading ?? meta.title}</h1>
+  </header>
+  <slot />
+</section>

@@ -1,18 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getSeriesPosts, type Post } from "@/lib/content/posts";
-
-const post = (overrides: Partial<Post> & { slug: string }): Post => ({
-  title: overrides.slug,
-  date: "2026-01-01",
-  description: "摘要",
-  tags: [],
-  featured: false,
-  draft: false,
-  ext: "md",
-  content: "",
-  wordCount: 0,
-  ...overrides
-});
+import { getSeriesPosts } from "@/lib/post-utils";
+import { post } from "./helpers";
 
 describe("getSeriesPosts", () => {
   it("returns an empty list when the post is not part of a series", () => {

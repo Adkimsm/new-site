@@ -6,7 +6,7 @@
 
 ## 2. 颜色
 
-全部色值集中在 `styles/tokens.css`。亮色为默认，暗色有两条等价入口：系统偏好（`prefers-color-scheme: dark`）与手动选择（`html[data-theme="dark"]`）。
+全部色值集中在 `src/styles/tokens.css`。亮色为默认，暗色有两条等价入口：系统偏好（`prefers-color-scheme: dark`）与手动选择（`html[data-theme="dark"]`）。
 
 亮色：
 
@@ -44,7 +44,7 @@
 
 ## 3. 字体
 
-- 正文与标题：Noto Serif SC，自托管切片（`styles/fonts.css` + `public/fonts/`）。
+- 正文与标题：Noto Serif SC，自托管切片（`src/styles/fonts.css` + `public/fonts/`）。
 - 回退链：`'Noto Serif SC Local', 'Noto Serif SC', 'Songti SC', STSong, serif`。
 - 界面元素、元信息、日期、标签行：`system-ui` 系统无衬线。
 - 代码：系统等宽字体，不引入体积过大的中文等宽字体。
@@ -90,19 +90,19 @@
 - 精选文章：标题前一个小圆点，不使用徽章与左侧竖线。
 - 归档（`/posts`）：按年份分组，年份标题 + 文章数；组内是日期 + 标题的纯文字行。不使用时间轴竖线与节点。
 - 授权卡：顶部一条细线的说明块（不是卡片），说明作者、许可与原文链接。
-- 友情链接（`/links`）：头像（40px 圆形、`--line-strong` 细线圆环）+ 站点名 + 一句话介绍的行式列表，行间 `--line-soft` 发丝线，不用卡片与阴影。悬停加下划线（仅 hover 设备），键盘用 `:focus-within`。头像缺失或加载失败时回退为 `--soft` 底的首字母块。数据在 `content/pages/links.md`。
+- 友情链接（`/links`）：头像（40px 圆形、`--line-strong` 细线圆环）+ 站点名 + 一句话介绍的行式列表，行间 `--line-soft` 发丝线，不用卡片与阴影。悬停加下划线（仅 hover 设备），键盘用 `:focus-within`。头像缺失或加载失败时回退为 `--soft` 底的首字母块。数据在 `src/content/pages/links.md`。
 - 系列（文章页顶部）：标题上方一块上下各一条 `--line` 发丝线的定位区，无卡片无背景。系列名用无衬线小字 + `--tracking-label` 字距；条目为等宽编号列（`tabular-nums`）+ 标题列，当前篇为墨色、标题前一个小圆点（与首页精选标记同一套做法）并加 `aria-current="page"`，其余为链接。系列只有一篇时整块不渲染。
 - 草稿标记：`draft` 文章仅在开发环境预览，标题上方 eyebrow 内追加一个 `草稿` 胶囊；生产构建不会渲染草稿，因此线上看不到。
 - 目录：右下角浮层，锚定在阅读按钮上方，由该按钮开合（全尺寸一致，不再有宽屏常驻粘性轨）；浮层首项是「回到顶部」，其后是各标题。开合同样走 `usePresence`/WAAPI，不再用「常驻挂载 + `visibility` 延迟过渡」。
 - 阅读工具：右下角单个圆形按钮，圆环边框显示阅读进度，圆内是目录图标；点击开合目录浮层。Esc 或点击浮层外部关闭。
 - 图片灯箱：正文图片可点击 / 回车打开全屏灯箱；条件挂载 + 与其余浮层同一套 `usePresence`/WAAPI 开合（背景淡入淡出、图片轻微缩放）。Esc 或点击关闭，关闭后归还焦点。
-- 搜索：全站浮层（导航搜索图标 / 快捷键 `/` 与 `⌘K`·`Ctrl+K`），不再是独立页面。浮层**条件挂载**，开合动画由 **Web Animations API 命令式驱动**（`lib/motion` 的 `animateElement` / `runExit`）：`element.animate()` 调用即执行，退场等 `animation.finished` 再卸载，不依赖「class 变化触发 CSS 过渡」，也避免了常驻大图层反复显隐掉帧。**不用 `backdrop-filter`**：实测只要浮层（或其子层）带背景模糊，同层 opacity 动画就会被合成器拖成 pending、开合没有过渡，故背景用不透明纸面。居中大号衬线输入框（文字居中），下方是结果列（标题 + 2 行摘要 + 日期），底部键盘提示；索引 `/search-index.json` 首次打开才拉取。结果项支持 `↑`/`↓` 选择、`Enter` 打开，`Esc` / 点击背景 / 右上角按钮关闭；打开时锁定滚动、聚焦输入框并支持 Tab 焦点陷阱，关闭后归还焦点。输入框隐藏 WebKit 原生清除按钮，避免与关闭入口重复出现两个 X。
-- 浮层开合机制：搜索、移动菜单、图片灯箱、目录四处浮层统一由 `lib/presence` 的 `usePresence(open, animate)` 管理——`open` 时条件挂载并播进场，`open` 变 false 时播退场、等 `animation.finished` 再卸载（另有兜底超时）。刻意**不在关闭态预挂载**：预挂载会多出一帧 `mounted && !open`，让退场动画（`fill: both`）在挂载帧就把元素钉到终态，表现为「打开时闪一下」。关键帧按浮层各自传入。
+- 搜索：全站浮层（导航搜索图标 / 快捷键 `/` 与 `⌘K`·`Ctrl+K`），不再是独立页面。浮层**条件挂载**，开合动画由 **Web Animations API 命令式驱动**（`src/lib/motion` 的 `animateElement` / `runExit`）：`element.animate()` 调用即执行，退场等 `animation.finished` 再卸载，不依赖「class 变化触发 CSS 过渡」，也避免了常驻大图层反复显隐掉帧。**不用 `backdrop-filter`**：实测只要浮层（或其子层）带背景模糊，同层 opacity 动画就会被合成器拖成 pending、开合没有过渡，故背景用不透明纸面。居中大号衬线输入框（文字居中），下方是结果列（标题 + 2 行摘要 + 日期），底部键盘提示；索引 `/search-index.json` 首次打开才拉取。结果项支持 `↑`/`↓` 选择、`Enter` 打开，`Esc` / 点击背景 / 右上角按钮关闭；打开时锁定滚动、聚焦输入框并支持 Tab 焦点陷阱，关闭后归还焦点。输入框隐藏 WebKit 原生清除按钮，避免与关闭入口重复出现两个 X。
+- 浮层开合机制：搜索、移动菜单、图片灯箱、目录四处浮层统一由 `src/lib/presence` 的 `usePresence(open, animate)` 管理——`open` 时条件挂载并播进场，`open` 变 false 时播退场、等 `animation.finished` 再卸载（另有兜底超时）。刻意**不在关闭态预挂载**：预挂载会多出一帧 `mounted && !open`，让退场动画（`fill: both`）在挂载帧就把元素钉到终态，表现为「打开时闪一下」。关键帧按浮层各自传入。
 
 ## 7. 主题机制
 
 - 令牌三层：`:root` 亮色 → `@media (prefers-color-scheme: dark) :root:not([data-theme="light"])` → `:root[data-theme="dark"]`。
-- 防闪烁：`app/layout.tsx` 中 `<body>` 的第一个内联脚本在解析期写入 `data-theme`。
+- 防闪烁：`src/layouts/BaseLayout.astro` 中 `<body>` 的第一个内联脚本（`is:inline`）在解析期写入 `data-theme`。
 - 手动切换：跟随系统 → 浅色 → 深色循环，持久化在 `localStorage["theme"]`；「跟随系统」不写存储值也不写属性。
 - 代码高亮必须同时命中媒体查询与属性选择器，否则「系统浅色 + 手动深色」时页面深、代码块浅。
 
@@ -114,12 +114,11 @@
 
 ### 页面过渡（原生 View Transitions）
 
-- 前端跳转由 `lib/view-transition.ts` 的 `useViewTransitionNavigate()` 调用 `document.startViewTransition()` 驱动，表现层在 `styles/motion.css`：内容区交叉淡入 + 轻微上浮（旧页 `--duration-fast` 上移淡出，新页 `--duration-normal` 延迟半个 `--duration-fast` 淡入上浮）。`components/page-transition.tsx` 只负责全局点击拦截，键盘导航（搜索浮层回车）复用同一个 hook，避免绕过过渡。
-- 拦截方式是 window **捕获阶段**的点击代理：先 `preventDefault()` 让 next/link 自身的 onClick 提前返回，再包住 `router.push()`。不走捕获就会被 React 的事件委托抢先完成跳转。
+- 前端跳转由 Astro 的 `<ClientRouter />`（`astro:transitions`，在 `src/layouts/BaseLayout.astro` 中挂载）驱动：它自己在 `document` 上挂点击代理，键盘导航（搜索浮层回车）用 `astro:transitions/client` 的 `navigate()`，避免绕过过渡。表现层在 `src/styles/motion.css`：内容区交叉淡入 + 轻微上浮（旧页 `--duration-fast` 上移淡出，新页 `--duration-normal` 延迟半个 `--duration-fast` 淡入上浮）。
 - 固定的导航与页脚用 `view-transition-name` 单独成组并取消动画，否则会被卷进 root 快照一起淡入淡出。过渡浮层设 `pointer-events: none`，动画期间仍可点击。
 - 搜索浮层与移动菜单同样要单独命名（`search-overlay` / `mobile-menu`）：它们会在导航时播放退场动画，若留在 root 快照里就会同时出现在新旧两张快照中（新快照拍到的是半透明中间态），交叉淡入互相抵消，表现为「动画丢了」。命名后 old 快照淡出、new 快照隐藏。**移动菜单在 DOM 上是 `<header class="nav">` 的后代**，命名同时把它从 `site-nav` 组里摘出来——否则会被 `::view-transition-old(site-nav) { display: none }` 一起抹掉，表现为进入页面时「闪一下」。
-- 不支持该 API 的浏览器与 `prefers-reduced-motion: reduce` 用户不拦截，回落到原有入场动画。首次跳转后给 `<html>` 加上 `vt-nav`（只加不删）关闭 `.page` / `.hero-*` 的入场动画——新快照可能在入场动画起始帧被拍摄而发白，且重新加回动画会在过渡结束后再淡入一次。首屏加载时该标记尚不存在，入场动画照常播放。
-- 浏览器后退/前进不触发过渡（不做 popstate 拦截），这是有意取舍。
+- `<ClientRouter />` 自动处理不支持该 API 的浏览器（退化为普通跳转）与 `prefers-reduced-motion: reduce` 用户。首次跳转后给 `<html>` 加上 `vt-nav`（只加不删）关闭 `.page` / `.hero-*` 的入场动画——新快照可能在入场动画起始帧被拍摄而发白，且重新加回动画会在过渡结束后再淡入一次。该标记由 `BaseLayout.astro` 里的内联脚本监听 `astro:before-swap` 添加；首屏加载时它尚不存在，入场动画照常播放。
+- 浏览器后退/前进同样由 `<ClientRouter />` 接管（`popstate` 也走过渡）。
 
 ## 9. 响应式断点
 
@@ -133,7 +132,7 @@
 
 ## 10. 样式文件结构
 
-`app/globals.css` 只是入口，按固定顺序引入各层，顺序不可调整：
+`src/styles/globals.css` 只是入口，按固定顺序引入各层，顺序不可调整：
 
 ```text
 tokens.css      设计令牌

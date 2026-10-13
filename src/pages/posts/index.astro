@@ -1,0 +1,35 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getPosts, groupPosts } from "@/lib/posts";
+import { buildMetadata } from "@/lib/metadata";
+
+const grouped = groupPosts(await getPosts());
+const meta = buildMetadata({ title: "文章", path: "/posts" });
+---
+
+<BaseLayout {...meta}>
+  <section class="page">
+    <header class="page-header">
+      <h1>文章</h1>
+      <p class="lede">按时间记录正在发生的思考。</p>
+    </header>
+    <div class="archive">
+      {Object.entries(grouped).map(([year, months]) => {
+        const posts = Object.values(months).flat();
+        return (
+          <section class="archive-year">
+            <h2 class="archive-year__title">{year}<span class="archive-year__count">{posts.length} 篇</span></h2>
+            <ul class="post-list">
+              {posts.map((post) => (
+                <li class={`post-item ${post.featured ? "post-item--featured" : ""}`}>
+                  <time class="post-date" datetime={post.date}>{post.date}</time>
+                  <a class="post-title" href={`/posts/${post.slug}`}>{post.title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        );
+      })}
+    </div>
+  </section>
+</BaseLayout>

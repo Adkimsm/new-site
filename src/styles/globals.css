@@ -1,0 +1,26 @@
+/* ==========================================================================
+   全局样式入口
+   --------------------------------------------------------------------------
+   只做一件事：按固定顺序引入同目录下的各层样式。
+   顺序不可随意调整 —— tokens 必须先于所有消费方，base 必须先于组件。
+
+     tokens.css      设计令牌（颜色、间距、圆角、字号、版心、动效）
+     base.css        reset、文档、链接、选区、焦点、可访问性辅助、减少动效
+     motion.css      页面过渡（原生 View Transitions API）
+     layout.css      版心、页首、分节、导航、移动菜单、首页首屏、页脚
+     components.css  eyebrow、按钮、胶囊、卡片、表单、空状态、列表、时间轴
+     prose.css       正文排版（标题、引用、代码块、表格、脚注、图片）
+     reading.css     文章页版式、目录、阅读工具、授权卡、灯箱
+     fonts.css       自托管字体切片（@font-face + unicode-range）
+
+   由 src/layouts/BaseLayout.astro 引入。
+   ========================================================================== */
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./motion.css";
+@import "./layout.css";
+@import "./components.css";
+@import "./prose.css";
+@import "./reading.css";
+@import "./fonts.css";

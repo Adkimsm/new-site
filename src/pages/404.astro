@@ -1,0 +1,20 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { buildMetadata } from "@/lib/metadata";
+
+const meta = buildMetadata({ title: "页面未找到", path: "/404" });
+---
+
+<BaseLayout {...meta}>
+  <meta slot="head" name="robots" content="noindex, nofollow" />
+  <section class="page">
+    <header class="page-header">
+      <span class="eyebrow">404</span>
+      <h1>这一页没有找到</h1>
+    </header>
+    <div class="empty-state">
+      <p>地址可能已经改变，或者它从未存在。</p>
+      <a class="button" href="/">回到首页</a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,6 +1,5 @@
 node_modules/
-.next/
-out/
+.astro/
 dist/
 coverage/
 .env

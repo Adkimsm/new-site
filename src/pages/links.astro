@@ -1,0 +1,50 @@
+---
+import { getEntry, render } from "astro:content";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { FriendAvatar } from "@/components/FriendAvatar";
+import { siteConfig } from "@/lib/site-config";
+import { getFriendLinks } from "@/lib/friend-links";
+import { buildMetadata } from "@/lib/metadata";
+
+const entry = await getEntry("pages", "links");
+if (!entry) throw new Error("Page not found: links");
+
+const { title, eyebrow, friendsTitle, links } = await getFriendLinks();
+const meta = buildMetadata({ title, path: "/links" });
+
+// 说明文字与内容页正文共用同一套渲染管线（rehype 外链硬化在配置里统一处理）。
+const hasIntro = Boolean(entry.body?.trim());
+const { Content } = hasIntro ? await render(entry) : { Content: null };
+---
+
+<BaseLayout {...meta}>
+  <section class="page prose">
+    <header class="page-header">
+      {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+      <h1>{title}</h1>
+    </header>
+
+    <h2>联系</h2>
+    <ul class="link-list">
+      <li><span class="link-list__label">GitHub</span><a href={siteConfig.github}>Adkimsm</a></li>
+      <li><span class="link-list__label">Email</span><a href={`mailto:${siteConfig.email}`}>发送邮件</a></li>
+      <li><span class="link-list__label">RSS</span><a href="/rss.xml">订阅更新</a></li>
+    </ul>
+
+    <h2>{friendsTitle}</h2>
+    {Content && <Content />}
+    {links.length === 0
+      ? <div class="empty-state"><p>还没有友链。欢迎通过上方邮箱和我交换链接。</p></div>
+      : <ul class="friend-list">
+          {links.map((link) => (
+            <li class="friend-item">
+              <FriendAvatar client:load name={link.name} src={link.avatar} />
+              <div class="friend-body">
+                <a class="friend-name" href={link.url} target="_blank" rel="noopener noreferrer">{link.name}</a>
+                {link.description && <span class="friend-desc">{link.description}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>}
+  </section>
+</BaseLayout>
